@@ -91,8 +91,23 @@ export function renderDictationExam(container, user, unitContent, onFinishExam, 
         </div>
 
         <!-- 4-Line Vector SVG English Notebook Typing Area -->
-        <div class="notebook-paper" id="notebook-paper-root">
-          <!-- Rendered dynamically by updateNotebookSVG() -->
+        <div class="notebook-paper">
+          <svg viewBox="0 0 540 120" style="width: 100%; height: 120px; overflow: visible;">
+            <!-- Line 1: Top Black Line (y=16) -->
+            <line x1="0" y1="16" x2="540" y2="16" stroke="#334155" stroke-width="2" />
+            
+            <!-- Line 2: Upper Mid Pink Dashed Line (y=51) -->
+            <line x1="0" y1="51" x2="540" y2="51" stroke="#f472b6" stroke-width="2" stroke-dasharray="6 6" />
+            
+            <!-- Line 3: 2nd from Bottom SOLID RED BASELINE (y=86) -->
+            <line x1="0" y1="86" x2="540" y2="86" stroke="#ef4444" stroke-width="2.5" />
+            
+            <!-- Line 4: Bottom Black Line (y=116) -->
+            <line x1="0" y1="116" x2="540" y2="116" stroke="#334155" stroke-width="2" />
+
+            <!-- Single Unified Vector Text Node (Font-size 78 for 100% natural letter proportions) -->
+            <text x="12" y="86" id="svg-notebook-text" font-family="'Comic Neue', 'Fredoka', 'Comic Sans MS', cursive, sans-serif" font-size="78" font-weight="700" fill="#0f172a" letter-spacing="1.5"></text>
+          </svg>
         </div>
 
         <!-- Hidden/Active Typing Input Box -->
@@ -109,75 +124,12 @@ export function renderDictationExam(container, user, unitContent, onFinishExam, 
     setTimeout(() => sound.speak(currentObj.word), 300);
 
     const inputEl = container.querySelector('#dictation-input');
-    const notebookRoot = container.querySelector('#notebook-paper-root');
+    const svgNotebookText = container.querySelector('#svg-notebook-text');
     inputEl.focus();
 
-    function updateNotebookSVG(text) {
-      const y1 = 10;  // Line 1: Top Black
-      const y2 = 48;  // Line 2: Upper Mid Pink Dashed
-      const y3 = 86;  // Line 3: Solid Red Baseline
-      const y4 = 124; // Line 4: Bottom Black
-
-      const tallChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZbdfhklt1234567890';
-      const wideChars = 'WMwmQGO';
-      const narrowChars = 'iIlftj1;,.\'!';
-
-      let currentX = 15;
-      let charElements = [];
-
-      for (let i = 0; i < text.length; i++) {
-        const char = text[i];
-        if (char === ' ') {
-          currentX += 20;
-          continue;
-        }
-
-        const isTall = tallChars.includes(char);
-        const fontSize = isTall ? 66 : 45; // Uppercase/Tall = 2 Rows (66px), Basic Lowercase = 1 Row (45px)
-
-        // Escape XML entities
-        let safeChar = char;
-        if (char === '&') safeChar = '&amp;';
-        if (char === '<') safeChar = '&lt;';
-        if (char === '>') safeChar = '&gt;';
-        if (char === '"') safeChar = '&quot;';
-        if (char === "'") safeChar = '&#39;';
-
-        charElements.push(`
-          <text x="${currentX}" y="${y3}" font-family="'Comic Neue', 'Fredoka', 'Comic Sans MS', cursive, sans-serif" font-size="${fontSize}" font-weight="700" fill="#0f172a">${safeChar}</text>
-        `);
-
-        let charWidth = isTall ? 28 : 22;
-        if (wideChars.includes(char)) charWidth = 36;
-        if (narrowChars.includes(char)) charWidth = 14;
-
-        currentX += charWidth;
-      }
-
-      notebookRoot.innerHTML = `
-        <svg viewBox="0 0 ${Math.max(560, currentX + 30)} 135" style="width: 100%; height: 135px; overflow: visible;">
-          <!-- Line 1: Top Black Line -->
-          <line x1="0" y1="${y1}" x2="${Math.max(560, currentX + 30)}" y2="${y1}" stroke="#334155" stroke-width="2" />
-          
-          <!-- Line 2: Upper Mid Pink/Red Dashed Line -->
-          <line x1="0" y1="${y2}" x2="${Math.max(560, currentX + 30)}" y2="${y2}" stroke="#f472b6" stroke-width="2" stroke-dasharray="6 6" />
-          
-          <!-- Line 3: 2nd from Bottom SOLID RED BASELINE (Writing Line) -->
-          <line x1="0" y1="${y3}" x2="${Math.max(560, currentX + 30)}" y2="${y3}" stroke="#ef4444" stroke-width="2.5" />
-          
-          <!-- Line 4: Bottom Black Line (Descender limit) -->
-          <line x1="0" y1="${y4}" x2="${Math.max(560, currentX + 30)}" y2="${y4}" stroke="#334155" stroke-width="2" />
-
-          <!-- Rendered Letter Nodes -->
-          <g>${charElements.join('')}</g>
-        </svg>
-      `;
-    }
-
-    // Initial render & sync typing
-    updateNotebookSVG('');
+    // Sync typing to unified SVG vector text node
     inputEl.addEventListener('input', (e) => {
-      updateNotebookSVG(e.target.value);
+      svgNotebookText.textContent = e.target.value;
     });
 
     container.querySelector('#btn-exam-exit').addEventListener('click', () => {
