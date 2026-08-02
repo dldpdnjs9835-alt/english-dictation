@@ -69,7 +69,43 @@ const GENERAL_EXPRESSIONS = [
   { expression: 'Thank you very much.', meaning: '정말 고마워.', hint: '감사하기' }
 ];
 
+// Helper functions for Custom Teacher Units (localStorage persistence)
+export function getCustomTeacherUnits() {
+  try {
+    const raw = localStorage.getItem('kids_english_custom_units');
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+export function saveCustomTeacherUnit(gradeKey, unitNum, unitContent) {
+  const custom = getCustomTeacherUnits();
+  const key = `${gradeKey}_unit${unitNum}`;
+  custom[key] = unitContent;
+  localStorage.setItem('kids_english_custom_units', JSON.stringify(custom));
+}
+
+export function resetCustomTeacherUnit(gradeKey, unitNum) {
+  const custom = getCustomTeacherUnits();
+  const key = `${gradeKey}_unit${unitNum}`;
+  delete custom[key];
+  localStorage.setItem('kids_english_custom_units', JSON.stringify(custom));
+}
+
+export function resetAllCustomTeacherUnits() {
+  localStorage.removeItem('kids_english_custom_units');
+}
+
 export function getUnitContent(gradeKey = 'grade5', unitNum = 1) {
+  // Check if teacher has customized this unit first
+  const custom = getCustomTeacherUnits();
+  const customKey = `${gradeKey}_unit${unitNum}`;
+  if (custom[customKey]) {
+    return custom[customKey];
+  }
+
+  // Built-in Grade 5 dataset
   if (gradeKey === 'grade5') {
     const uData = GRADE_5_DATA[`unit${unitNum}`] || GRADE_5_DATA.unit1;
     return {
@@ -78,7 +114,7 @@ export function getUnitContent(gradeKey = 'grade5', unitNum = 1) {
     };
   }
 
-  // Fallback for other grades: generate grade & unit specific words & expressions
+  // Built-in fallback for other grades
   const baseWords = GENERAL_GRADE_WORDS[gradeKey] || GENERAL_GRADE_WORDS.grade3;
   return {
     words: baseWords,
@@ -87,22 +123,18 @@ export function getUnitContent(gradeKey = 'grade5', unitNum = 1) {
 }
 
 export function getAllWordsForGrade(gradeKey = 'grade5') {
-  if (gradeKey === 'grade5') {
-    let allW = [];
-    let allE = [];
-    for (let u = 1; u <= 12; u++) {
-      const uData = GRADE_5_DATA[`unit${u}`];
-      if (uData) {
-        if (uData.words) allW.push(...uData.words);
-        if (uData.expressions) allE.push(...uData.expressions);
-      }
+  let allW = [];
+  let allE = [];
+
+  for (let u = 1; u <= 12; u++) {
+    const uData = getUnitContent(gradeKey, u);
+    if (uData) {
+      if (uData.words) allW.push(...uData.words);
+      if (uData.expressions) allE.push(...uData.expressions);
     }
-    return { words: allW, expressions: allE };
   }
-  return {
-    words: GENERAL_GRADE_WORDS[gradeKey] || GENERAL_GRADE_WORDS.grade3,
-    expressions: GENERAL_EXPRESSIONS
-  };
+
+  return { words: allW, expressions: allE };
 }
 
 export const AVATARS = ['🐶', '🐱', '🦊', '🐻', '🐼', '🦁', '🦄', '🐯', '🤖', '👑'];

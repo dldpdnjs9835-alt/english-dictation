@@ -1,7 +1,7 @@
 import { sound } from '../services/sound.js';
 import { GRADES, UNITS } from '../data/words.js';
 
-export function renderNavbar(container, user, currentGrade, currentUnit, onOpenAuth, onGradeChange, onUnitChange, onNavigateMyPage, onNavigateHome) {
+export function renderNavbar(container, user, currentGrade, currentUnit, onOpenAuth, onGradeChange, onUnitChange, onNavigateMyPage, onNavigateTeacher, onNavigateHome) {
   const isMuted = sound.muted;
   
   container.innerHTML = `
@@ -34,6 +34,11 @@ export function renderNavbar(container, user, currentGrade, currentUnit, onOpenA
         <!-- MyPage Button -->
         <button id="btn-nav-mypage" class="btn-secondary" style="padding: 6px 14px; font-size: 0.9rem;">
           👤 마이페이지
+        </button>
+
+        <!-- Teacher Admin Button -->
+        <button id="btn-nav-teacher" class="btn-secondary" style="padding: 6px 14px; font-size: 0.9rem; background: rgba(168, 85, 247, 0.2); border-color: #a855f7; color: #c084fc;">
+          👩‍🏫 선생님
         </button>
 
         <!-- Audio Toggle -->
@@ -69,6 +74,11 @@ export function renderNavbar(container, user, currentGrade, currentUnit, onOpenA
   container.querySelector('#btn-nav-mypage').addEventListener('click', () => {
     sound.playPop();
     onNavigateMyPage();
+  });
+
+  container.querySelector('#btn-nav-teacher').addEventListener('click', () => {
+    sound.playPop();
+    onNavigateTeacher();
   });
 
   container.querySelector('#mute-toggle').addEventListener('click', () => {

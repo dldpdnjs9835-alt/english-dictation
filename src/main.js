@@ -12,6 +12,7 @@ import { renderHallOfFame } from './components/HallOfFame.js';
 import { renderAuthModal } from './components/AuthModal.js';
 import { renderLoginScreen } from './components/LoginScreen.js';
 import { renderMyPage } from './components/MyPage.js';
+import { renderTeacherAdmin } from './components/TeacherAdmin.js';
 
 class App {
   constructor() {
@@ -73,6 +74,7 @@ class App {
         this.render(); 
       },
       () => { this.currentView = 'mypage'; this.render(); },
+      () => { this.currentView = 'teacher'; this.render(); },
       () => { this.currentView = 'home'; this.render(); }
     );
 
@@ -192,6 +194,13 @@ class App {
             storage.saveUser(updatedUser);
             this.render();
           },
+          () => { this.currentView = 'home'; this.render(); }
+        );
+        break;
+
+      case 'teacher':
+        renderTeacherAdmin(
+          mainContent,
           () => { this.currentView = 'home'; this.render(); }
         );
         break;
