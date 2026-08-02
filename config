@@ -1,0 +1,15 @@
+[core]
+	repositoryformatversion = 0
+	filemode = false
+	bare = false
+	logallrefupdates = true
+	symlinks = false
+	ignorecase = true
+	fsmonitor = true
+	untrackedCache = true
+[user]
+	name = Student
+	email = student@example.com
+[remote "origin"]
+	url = https://github.com/dldpdnjs9835-alt/english-dictation.git
+	fetch = +refs/heads/*:refs/remotes/origin/*

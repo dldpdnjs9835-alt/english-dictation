@@ -28,10 +28,13 @@ export function renderNavbar(container, user, currentGrade, onOpenAuth, onGradeC
           ${isMuted ? '🔇' : '🔊'}
         </button>
 
-        <!-- User Profile & Login Button -->
+        <!-- User Profile & Login Status Button -->
         <button id="user-profile-btn" class="user-profile-btn">
           <span class="user-avatar">${user.avatar || '👦'}</span>
           <span class="user-name">${user.name}</span>
+          <span style="font-size: 0.8rem; padding: 2px 8px; border-radius: 50px; background: ${user.isAnonymous ? 'rgba(255,255,255,0.15)' : '#4285f4'};">
+            ${user.isAnonymous ? '👤 게스트' : '🌐 Google'}
+          </span>
         </button>
       </div>
     </nav>

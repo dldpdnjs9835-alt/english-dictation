@@ -10,6 +10,8 @@ import { renderDictationExam } from './components/DictationExam.js';
 import { renderHallOfFame } from './components/HallOfFame.js';
 import { renderAuthModal } from './components/AuthModal.js';
 
+import { renderLoginScreen } from './components/LoginScreen.js';
+
 class App {
   constructor() {
     this.currentView = 'home';
@@ -36,6 +38,19 @@ class App {
     const navRoot = this.appContainer.querySelector('#navbar-root');
     const mainContent = this.appContainer.querySelector('#main-content');
     const modalRoot = this.appContainer.querySelector('#modal-root');
+
+    // If user has not logged in / entered yet, display Login Screen first!
+    if (!storage.user.isLoggedIn) {
+      renderLoginScreen(
+        mainContent,
+        storage.user,
+        (loggedUser) => {
+          storage.saveUser(loggedUser);
+          this.render();
+        }
+      );
+      return;
+    }
 
     // Render Navbar
     renderNavbar(

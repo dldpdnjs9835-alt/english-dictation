@@ -36,16 +36,16 @@ export function renderAuthModal(container, user, onSaveUser, onClose) {
         </div>
 
         <!-- Firebase Auth Option -->
-        <div style="background: rgba(0,0,0,0.25); padding: 14px; border-radius: var(--radius-md); margin-bottom: 20px; text-align: center;">
-          <h4 style="font-size: 0.95rem; margin-bottom: 8px; color: var(--text-muted);">
-            ${isFirebaseReady ? '🔥 Firebase 연동 상태' : 'ℹ️ 데모 오프라인 모드'}
+        <div style="background: rgba(0,0,0,0.25); padding: 16px; border-radius: var(--radius-md); margin-bottom: 20px; text-align: center;">
+          <h4 style="font-size: 0.95rem; margin-bottom: 10px; color: var(--text-muted);">
+            ${isFirebaseReady ? '🔥 Firebase 연동 로그인 상태' : 'ℹ️ 오프라인 상태'}
           </h4>
           <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-            <button id="btn-google-login" class="btn-secondary" style="background: #ea4335; color: white; border: none;">
-              🌐 Google 로그인
+            <button id="btn-google-login" class="btn-secondary" style="background: linear-gradient(135deg, #4285f4, #34a853); color: white; border: none; font-weight: 800;">
+              🌐 Google 계정 로그인
             </button>
-            <button id="btn-anon-login" class="btn-secondary">
-              👤 익명 로그인
+            <button id="btn-logout" class="btn-secondary" style="background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #fca5a5;">
+              🚪 로그아웃 / 첫 화면으로
             </button>
           </div>
         </div>
@@ -107,19 +107,17 @@ export function renderAuthModal(container, user, onSaveUser, onClose) {
     }
   });
 
-  container.querySelector('#btn-anon-login').addEventListener('click', async () => {
+  container.querySelector('#btn-logout').addEventListener('click', async () => {
     sound.playPop();
     try {
-      const fbUser = await loginAnonymously();
+      await logoutUser();
       onSaveUser({
         ...user,
-        id: fbUser.uid,
-        isAnonymous: true
+        isLoggedIn: false
       });
-      alert("🎉 익명 로그인 성공!");
       onClose();
     } catch (err) {
-      alert(`로그인 안내: ${err.message}`);
+      alert(`로그아웃 안내: ${err.message}`);
     }
   });
 }
