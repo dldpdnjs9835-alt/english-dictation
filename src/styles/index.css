@@ -430,13 +430,13 @@ body {
 .notebook-paper {
   position: relative;
   width: 100%;
-  max-width: 560px;
-  min-height: 160px;
+  max-width: 580px;
+  min-height: 170px;
   margin: 16px auto;
   background: #ffffff;
-  border-radius: 14px;
+  border-radius: 16px;
   box-shadow: inset 0 0 8px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.25);
-  padding: 26px 28px;
+  padding: 24px 28px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -446,7 +446,7 @@ body {
 
 .notebook-lines {
   position: relative;
-  height: 108px;
+  height: 120px;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -458,49 +458,51 @@ body {
   height: 1.5px;
 }
 
-/* Line 1 (Top Black): Upper boundary of top row */
+/* Line 1 (Top Black): 0px */
 .notebook-line.top-black {
   background: #334155;
   height: 2px;
 }
 
-/* Line 2 (Upper Mid Red/Pink Dashed): Boundary between top row and mid row */
+/* Line 2 (Upper Mid Red/Pink Dashed): 40px */
 .notebook-line.mid-red-dashed {
   background: transparent;
-  border-bottom: 1.5px dashed #f472b6;
+  border-bottom: 2px dashed #f472b6;
 }
 
-/* Line 3 (Solid Red Baseline): 2nd from bottom - Base line where letters rest */
+/* Line 3 (Solid Red Baseline): 80px - Base line where letters rest */
 .notebook-line.baseline-red {
   background: #ef4444;
   height: 2.5px;
+  box-shadow: 0 0 3px rgba(239, 68, 68, 0.4);
 }
 
-/* Line 4 (Bottom Black): Lower boundary for descender tails */
+/* Line 4 (Bottom Black): 120px */
 .notebook-line.bottom-black {
   background: #334155;
   height: 2px;
 }
 
-/* Handwriting Text Overlay: Uppercase/Tall letters = 2 Rows Full Fit (72px), Basic lowercase = 1 Row Full Fit (36px) */
+/* Handwriting Text Overlay: Lowercase fills 100% between Line 2 and Line 3, Uppercase fills 100% between Line 1 and Line 3 */
 .notebook-text-overlay {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  height: 72px; /* Top Line (0px) to Solid Red Line 3 (72px) */
+  height: 80px; /* Top Line (0px) to Solid Red Line 3 (80px) */
   display: flex;
   align-items: flex-end;
-  font-family: 'Comic Neue', 'Fredoka', cursive, sans-serif;
-  font-size: 4.1rem;
+  font-family: 'Fredoka', 'Comic Neue', cursive, sans-serif;
+  font-size: 5.2rem;
   font-weight: 700;
   color: #0f172a;
   letter-spacing: 4px;
-  line-height: 0.94;
+  line-height: 0.88;
   padding-left: 12px;
   pointer-events: none;
   white-space: pre;
   overflow-x: auto;
+  transform: translateY(7px);
 }
 
 /* Game 1: Word Search Grid Arena (10x10) */
