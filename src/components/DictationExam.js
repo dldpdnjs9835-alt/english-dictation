@@ -93,10 +93,10 @@ export function renderDictationExam(container, user, unitContent, onFinishExam, 
         <!-- 4-Line English Notebook Typing Area -->
         <div class="notebook-paper">
           <div class="notebook-lines">
-            <div class="notebook-line top-blue" title="1st Line (Top Blue)"></div>
-            <div class="notebook-line mid-blue-dashed" title="2nd Line (Mid Blue Dashed)"></div>
-            <div class="notebook-line baseline-red" title="3rd Line (Red Baseline - Write here!)"></div>
-            <div class="notebook-line bottom-blue" title="4th Line (Bottom Blue)"></div>
+            <div class="notebook-line top-black" title="1st Line (Top Black)"></div>
+            <div class="notebook-line mid-red-dashed" title="2nd Line (Red/Pink Dashed)"></div>
+            <div class="notebook-line baseline-red" title="3rd Line (Red Solid Baseline - Write here!)"></div>
+            <div class="notebook-line bottom-black" title="4th Line (Bottom Black)"></div>
             <div class="notebook-text-overlay" id="notebook-text"></div>
           </div>
         </div>

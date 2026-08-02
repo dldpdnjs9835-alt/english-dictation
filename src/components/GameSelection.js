@@ -11,10 +11,10 @@ export function renderGameSelection(container, user, onSelectGame) {
     <div class="game-grid">
       <!-- Game 1 -->
       <div class="game-card glass-card" id="btn-game1" style="--card-accent: #ec4899; --card-glow: rgba(236, 72, 153, 0.4);">
-        <div class="game-icon-box">🧺</div>
+        <div class="game-icon-box">🔍</div>
         <div class="reward-pill">보상: 티켓 🎟️ +1</div>
-        <h3 class="game-title">알파벳 캐치 게임</h3>
-        <p class="game-desc">하늘에서 떨어지는 알파벳 중 내 단어에 포함된 철자를 순서 상관없이 바구니로 쏙쏙 받아보세요!</p>
+        <h3 class="game-title">단어 숨은그림찾기</h3>
+        <p class="game-desc">6x6 글자 판 속에 몰래 숨어 있는 목표 영단어를 찾아서 쏙쏙 조립해봐!</p>
         <button class="btn-primary" style="background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);">게임 시작</button>
       </div>
 

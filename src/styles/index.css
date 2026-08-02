@@ -1,4 +1,6 @@
 /* === Kids English Dictation Adventure Core Design System === */
+@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&family=Fredoka:wght@600;700&family=Outfit:wght@400;600;800;900&display=swap');
+
 :root {
   --font-family: 'Outfit', 'Noto Sans KR', sans-serif;
   --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #31104b 100%);
@@ -429,12 +431,12 @@ body {
   position: relative;
   width: 100%;
   max-width: 540px;
-  min-height: 140px;
+  min-height: 150px;
   margin: 16px auto;
-  background: #fffdf5;
+  background: #ffffff;
   border-radius: 14px;
-  box-shadow: inset 0 0 10px rgba(0,0,0,0.06), 0 6px 22px rgba(0,0,0,0.22);
-  padding: 20px 24px;
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.25);
+  padding: 24px 28px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -444,7 +446,7 @@ body {
 
 .notebook-lines {
   position: relative;
-  height: 90px;
+  height: 100px;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -453,74 +455,106 @@ body {
 
 .notebook-line {
   width: 100%;
+  height: 1.5px;
+}
+
+/* Line 1: Top Black/Dark Line */
+.notebook-line.top-black {
+  background: #334155;
+}
+
+/* Line 2: Upper Mid Red/Pink Dashed Line */
+.notebook-line.mid-red-dashed {
+  background: transparent;
+  border-bottom: 1.5px dashed #f472b6;
+}
+
+/* Line 3: Lower Mid SOLID RED BASELINE (Writing Line) */
+.notebook-line.baseline-red {
+  background: #ef4444;
   height: 2px;
 }
 
-/* Line 1: Top Blue */
-.notebook-line.top-blue {
-  background: #3b82f6;
+/* Line 4: Bottom Black/Dark Line */
+.notebook-line.bottom-black {
+  background: #334155;
 }
 
-/* Line 2: Mid Blue Dashed */
-.notebook-line.mid-blue-dashed {
-  background: #93c5fd;
-  border-bottom: 1.5px dashed #60a5fa;
-}
-
-/* Line 3: 2nd from bottom RED BASELINE */
-.notebook-line.baseline-red {
-  background: #ef4444;
-  height: 2.5px;
-  box-shadow: 0 0 4px rgba(239, 68, 68, 0.4);
-}
-
-/* Virtual Joystick Controller */
-.joystick-container {
+/* Handwriting Text Overlay */
+.notebook-text-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 66px; /* Exactly aligns letters baseline on 3rd Red Line! */
   display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 10px;
-  position: relative;
+  align-items: flex-end;
+  font-family: 'Comic Neue', 'Fredoka', cursive, sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: 3px;
+  line-height: 1;
+  padding-left: 12px;
+  pointer-events: none;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* Game 1: Word Search Grid Arena */
+.word-search-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.7);
+  padding: 16px;
+  border-radius: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
   user-select: none;
 }
 
-.joystick-base {
-  width: 110px;
-  height: 60px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0.25);
-  border-radius: 30px;
-  position: relative;
+.grid-cell {
+  width: 52px;
+  height: 52px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  touch-action: none;
-  cursor: grab;
-}
-
-.joystick-track-line {
-  position: absolute;
-  width: 70px;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 2px;
-}
-
-.joystick-knob {
-  width: 44px;
-  height: 44px;
-  background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
-  border: 2px solid #fff;
-  border-radius: 50%;
-  box-shadow: 0 4px 10px rgba(236, 72, 153, 0.5);
-  position: absolute;
-  transition: transform 0.05s ease-out;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
+  font-size: 1.5rem;
+  font-weight: 900;
   color: #fff;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.grid-cell:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.06);
+}
+
+.grid-cell.selected {
+  background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+  border-color: #f472b6;
+  box-shadow: 0 4px 15px rgba(236, 72, 153, 0.6);
+  transform: scale(1.1);
+  color: #fff;
+}
+
+.grid-cell.matched {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-color: #34d399;
+  box-shadow: 0 4px 18px rgba(16, 185, 129, 0.7);
+  transform: scale(1.12);
+  animation: pulseMatch 0.4s ease;
+}
+
+@keyframes pulseMatch {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+  100% { transform: scale(1.12); }
 }
 
 .notebook-text-overlay {
