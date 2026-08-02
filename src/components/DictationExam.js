@@ -90,15 +90,24 @@ export function renderDictationExam(container, user, unitContent, onFinishExam, 
           </div>
         </div>
 
-        <!-- 4-Line English Notebook Typing Area -->
+        <!-- 4-Line Vector SVG English Notebook Typing Area -->
         <div class="notebook-paper">
-          <div class="notebook-lines">
-            <div class="notebook-line top-black" title="1st Line (Top Black)"></div>
-            <div class="notebook-line mid-red-dashed" title="2nd Line (Red/Pink Dashed)"></div>
-            <div class="notebook-line baseline-red" title="3rd Line (Red Solid Baseline - Write here!)"></div>
-            <div class="notebook-line bottom-black" title="4th Line (Bottom Black)"></div>
-            <div class="notebook-text-overlay" id="notebook-text"></div>
-          </div>
+          <svg viewBox="0 0 540 120" style="width: 100%; height: 120px; overflow: visible;">
+            <!-- Line 1: Top Black Line -->
+            <line x1="0" y1="10" x2="540" y2="10" stroke="#334155" stroke-width="2" />
+            
+            <!-- Line 2: Upper Mid Pink/Red Dashed Line -->
+            <line x1="0" y1="45" x2="540" y2="45" stroke="#f472b6" stroke-width="2" stroke-dasharray="5 5" />
+            
+            <!-- Line 3: 2nd from Bottom SOLID RED BASELINE (Writing Line) -->
+            <line x1="0" y1="80" x2="540" y2="80" stroke="#ef4444" stroke-width="2.5" />
+            
+            <!-- Line 4: Bottom Black Line (Descender limit) -->
+            <line x1="0" y1="115" x2="540" y2="115" stroke="#334155" stroke-width="2" />
+
+            <!-- Vector Text Overlay with Exact Baseline y="80" -->
+            <text x="10" y="80" id="svg-notebook-text" font-family="'Comic Neue', 'Fredoka', cursive, sans-serif" font-size="44" font-weight="700" fill="#0f172a" letter-spacing="2"></text>
+          </svg>
         </div>
 
         <!-- Hidden/Active Typing Input Box -->
@@ -115,12 +124,12 @@ export function renderDictationExam(container, user, unitContent, onFinishExam, 
     setTimeout(() => sound.speak(currentObj.word), 300);
 
     const inputEl = container.querySelector('#dictation-input');
-    const notebookOverlay = container.querySelector('#notebook-text');
+    const svgNotebookText = container.querySelector('#svg-notebook-text');
     inputEl.focus();
 
-    // Sync typing to 4-line notebook
+    // Sync typing to SVG vector notebook text
     inputEl.addEventListener('input', (e) => {
-      notebookOverlay.innerText = e.target.value;
+      svgNotebookText.textContent = e.target.value;
     });
 
     container.querySelector('#btn-exam-exit').addEventListener('click', () => {
