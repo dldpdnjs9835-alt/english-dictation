@@ -482,7 +482,7 @@ body {
   height: 2px;
 }
 
-/* Handwriting Text Overlay: Uppercase/Tall letters = 2 Rows (72px), Basic lowercase = 1 Row (36px) */
+/* Handwriting Text Overlay: Uppercase/Tall letters = 2 Rows Full Fit (72px), Basic lowercase = 1 Row Full Fit (36px) */
 .notebook-text-overlay {
   position: absolute;
   top: 0;
@@ -492,11 +492,11 @@ body {
   display: flex;
   align-items: flex-end;
   font-family: 'Comic Neue', 'Fredoka', cursive, sans-serif;
-  font-size: 3.2rem;
+  font-size: 4.1rem;
   font-weight: 700;
   color: #0f172a;
-  letter-spacing: 3px;
-  line-height: 1;
+  letter-spacing: 4px;
+  line-height: 0.94;
   padding-left: 12px;
   pointer-events: none;
   white-space: pre;
