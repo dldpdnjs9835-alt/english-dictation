@@ -1,5 +1,5 @@
 import './styles/index.css';
-import { WORD_DATABASE } from './data/words.js';
+import { getUnitContent, GRADES } from './data/words.js';
 import { storage } from './services/storage.js';
 import { renderNavbar } from './components/Navbar.js';
 import { renderGameSelection } from './components/GameSelection.js';
@@ -9,12 +9,14 @@ import { renderMiniGame3 } from './components/MiniGame3.js';
 import { renderDictationExam } from './components/DictationExam.js';
 import { renderHallOfFame } from './components/HallOfFame.js';
 import { renderAuthModal } from './components/AuthModal.js';
-
 import { renderLoginScreen } from './components/LoginScreen.js';
+import { renderMyPage } from './components/MyPage.js';
 
 class App {
   constructor() {
     this.currentView = 'home';
+    this.currentGrade = storage.grade || 'grade5';
+    this.currentUnit = parseInt(localStorage.getItem('kids_english_unit')) || 1;
     this.isAuthModalOpen = false;
     this.init();
   }
@@ -24,8 +26,8 @@ class App {
     this.render();
   }
 
-  getWordList() {
-    return WORD_DATABASE[storage.grade] || WORD_DATABASE.grade1_2;
+  getUnitData() {
+    return getUnitContent(this.currentGrade, this.currentUnit);
   }
 
   render() {
@@ -52,18 +54,29 @@ class App {
       return;
     }
 
-    // Render Navbar
+    // Render Navbar with Grade (1-6) & Unit (1-12) selectors and MyPage button
     renderNavbar(
       navRoot,
       storage.user,
-      storage.grade,
+      this.currentGrade,
+      this.currentUnit,
       () => { this.isAuthModalOpen = true; this.render(); },
-      (newGrade) => { storage.setGrade(newGrade); this.render(); },
+      (newGrade) => { 
+        this.currentGrade = newGrade; 
+        storage.setGrade(newGrade); 
+        this.render(); 
+      },
+      (newUnit) => { 
+        this.currentUnit = newUnit; 
+        localStorage.setItem('kids_english_unit', newUnit); 
+        this.render(); 
+      },
+      () => { this.currentView = 'mypage'; this.render(); },
       () => { this.currentView = 'home'; this.render(); }
     );
 
-    // Render Main Content View
-    const wordList = this.getWordList();
+    const unitContent = this.getUnitData();
+    const wordList = unitContent.words || [];
 
     switch (this.currentView) {
       case 'game1':
@@ -109,11 +122,39 @@ class App {
         renderDictationExam(
           mainContent,
           storage.user,
-          wordList,
-          (score) => {
+          unitContent,
+          (score, wrongList) => {
             storage.useTicket();
+            
+            // Record exam history & wrong words
+            const gradeObj = GRADES.find(g => g.key === this.currentGrade);
+            const gradeName = gradeObj ? gradeObj.name : '5학년';
+            const unitName = `${this.currentUnit}단원`;
+
+            const history = storage.user.examHistory || [];
+            history.unshift({
+              gradeKey: this.currentGrade,
+              gradeName,
+              unitNum: this.currentUnit,
+              unitName,
+              score,
+              timestamp: Date.now()
+            });
+            storage.user.examHistory = history;
+
+            // Append wrong words without duplicates
+            const existingWrongs = storage.user.wrongWords || [];
+            if (wrongList && wrongList.length > 0) {
+              wrongList.forEach(item => {
+                if (!existingWrongs.some(w => w.word.toLowerCase() === item.word.toLowerCase())) {
+                  existingWrongs.push(item);
+                }
+              });
+            }
+            storage.user.wrongWords = existingWrongs;
+
             storage.updateDictationScore(score);
-            this.currentView = 'hof';
+            this.currentView = 'mypage';
             this.render();
           },
           () => { this.currentView = 'home'; this.render(); }
@@ -125,6 +166,18 @@ class App {
           mainContent,
           storage.user,
           storage,
+          () => { this.currentView = 'home'; this.render(); }
+        );
+        break;
+
+      case 'mypage':
+        renderMyPage(
+          mainContent,
+          storage.user,
+          (updatedUser) => {
+            storage.saveUser(updatedUser);
+            this.render();
+          },
           () => { this.currentView = 'home'; this.render(); }
         );
         break;

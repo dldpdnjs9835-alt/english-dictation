@@ -1,7 +1,7 @@
 import { sound } from '../services/sound.js';
 import confetti from 'canvas-confetti';
 
-export function renderDictationExam(container, user, wordList, onFinishExam, onBack) {
+export function renderDictationExam(container, user, unitContent, onFinishExam, onBack) {
   // Check ticket
   if (user.tickets < 1) {
     container.innerHTML = `
@@ -21,13 +21,35 @@ export function renderDictationExam(container, user, wordList, onFinishExam, onB
     return;
   }
 
+  // Construct 10 items: 7 words (Q1-7) + 3 expressions (Q8-10)
+  const availableWords = [...(unitContent.words || [])].sort(() => 0.5 - Math.random());
+  const availableExprs = [...(unitContent.expressions || [])].sort(() => 0.5 - Math.random());
+
+  const examWordsPart = availableWords.slice(0, 7).map(item => ({ ...item, isExpression: false }));
+  
+  // If fewer than 3 expressions, backfill with words
+  let examExprsPart = availableExprs.slice(0, 3).map(item => ({
+    word: item.expression,
+    meaning: item.meaning,
+    hint: item.hint,
+    isExpression: true
+  }));
+
+  if (examExprsPart.length < 3) {
+    const extraWords = availableWords.slice(7, 7 + (3 - examExprsPart.length)).map(item => ({ ...item, isExpression: false }));
+    examExprsPart = [...examExprsPart, ...extraWords];
+  }
+
+  const examItems = [...examWordsPart, ...examExprsPart];
+
   let examIndex = 0;
-  const examWords = [...wordList].sort(() => 0.5 - Math.random()).slice(0, 10);
   let correctCount = 0;
   let userAnswers = [];
+  let wrongList = [];
 
   function renderExamQuestion() {
-    const currentObj = examWords[examIndex];
+    const currentObj = examItems[examIndex];
+    const isExpr = currentObj.isExpression;
 
     container.innerHTML = `
       <div class="game-container glass-card">
@@ -39,32 +61,50 @@ export function renderDictationExam(container, user, wordList, onFinishExam, onB
           </div>
         </div>
 
+        <!-- Question Type Pill -->
+        <div style="text-align: center; margin-top: 4px;">
+          <span style="background: ${isExpr ? 'linear-gradient(135deg, #ec4899, #8b5cf6)' : 'linear-gradient(135deg, #3b82f6, #10b981)'}; color: #fff; font-weight: 800; padding: 4px 16px; border-radius: 20px; font-size: 0.95rem;">
+            ${isExpr ? '💬 8~10번: 주요 표현 문장 시험' : '🔤 1~7번: 주요 단어 시험'}
+          </span>
+        </div>
+
         <!-- Virtual Teacher Section -->
-        <div class="teacher-section">
+        <div class="teacher-section" style="margin-top: 10px;">
           <div class="teacher-avatar">👩‍🏫</div>
           <div class="speech-bubble">
-            "제 ${examIndex + 1}번 문제입니다. 선생님의 발음을 잘 듣고 스펠링을 입력하세요!"
+            ${isExpr ? `"제 ${examIndex + 1}번 문제입니다. 선생님이 읽어주는 **주요 표현 문장**을 듣고 쓰세요!"` : `"제 ${examIndex + 1}번 문제입니다. 선생님의 발음을 듣고 스펠링을 입력하세요!"`}
           </div>
         </div>
 
         <!-- Audio Player Controls -->
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 10px;">
-          <button id="btn-play-sound" class="speaker-btn-large" style="width: 100px; height: 100px; font-size: 3rem;">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 8px;">
+          <button id="btn-play-sound" class="speaker-btn-large" style="width: 80px; height: 80px; font-size: 2.5rem;">
             🔊
           </button>
           <div style="display: flex; gap: 10px;">
-            <button id="btn-speak-word" class="btn-secondary">단어 들려주기</button>
-            <button id="btn-show-hint" class="btn-secondary">뜻 힌트 보기 💡</button>
+            <button id="btn-speak-word" class="btn-secondary">소리 다시 듣기</button>
+            <button id="btn-show-hint" class="btn-secondary">한글 뜻 힌트 보기 💡</button>
           </div>
           <div id="hint-display" style="display: none; color: #fbbf24; font-weight: 700; font-size: 1.1rem;">
-            뜻: ${currentObj.meaning} (${currentObj.hint})
+            뜻: ${currentObj.meaning}
           </div>
         </div>
 
-        <!-- Dictation Input Box -->
-        <div class="dictation-input-box">
-          <input type="text" id="dictation-input" class="dictation-input" placeholder="스펠링 입력..." autocomplete="off" />
-          <button id="btn-submit-answer" class="btn-primary" style="font-size: 1.2rem; padding: 14px 40px;">
+        <!-- 4-Line English Notebook Typing Area -->
+        <div class="notebook-paper">
+          <div class="notebook-lines">
+            <div class="notebook-line top-red"></div>
+            <div class="notebook-line mid-blue"></div>
+            <div class="notebook-line mid-blue"></div>
+            <div class="notebook-line bottom-red"></div>
+            <div class="notebook-text-overlay" id="notebook-text"></div>
+          </div>
+        </div>
+
+        <!-- Hidden/Active Typing Input Box -->
+        <div class="dictation-input-box" style="margin-top: 6px;">
+          <input type="text" id="dictation-input" class="dictation-input" placeholder="${isExpr ? '영어 표현 문장 입력...' : '스펠링 입력...'}" autocomplete="off" style="font-size: 1.2rem;" />
+          <button id="btn-submit-answer" class="btn-primary" style="font-size: 1.2rem; padding: 12px 36px;">
             제출하기 ➔
           </button>
         </div>
@@ -75,7 +115,13 @@ export function renderDictationExam(container, user, wordList, onFinishExam, onB
     setTimeout(() => sound.speak(currentObj.word), 300);
 
     const inputEl = container.querySelector('#dictation-input');
+    const notebookOverlay = container.querySelector('#notebook-text');
     inputEl.focus();
+
+    // Sync typing to 4-line notebook
+    inputEl.addEventListener('input', (e) => {
+      notebookOverlay.innerText = e.target.value;
+    });
 
     container.querySelector('#btn-exam-exit').addEventListener('click', () => {
       if (confirm('시험을 중단하시겠습니까? (소모된 티켓은 반환되지 않습니다)')) {
@@ -99,10 +145,14 @@ export function renderDictationExam(container, user, wordList, onFinishExam, onB
     });
 
     const submitAnswer = () => {
-      const val = inputEl.value.trim().toLowerCase();
+      const val = inputEl.value.trim();
       if (!val) return;
 
-      const isCorrect = val === currentObj.word.toLowerCase();
+      // Clean punctuation & spacing for comparison
+      const cleanUser = val.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const cleanTarget = currentObj.word.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+      const isCorrect = cleanUser === cleanTarget;
       userAnswers.push({
         wordObj: currentObj,
         userAnswer: val,
@@ -114,6 +164,11 @@ export function renderDictationExam(container, user, wordList, onFinishExam, onB
         correctCount++;
       } else {
         sound.playWrong();
+        wrongList.push({
+          word: currentObj.word,
+          meaning: currentObj.meaning,
+          isExpression: isExpr
+        });
       }
 
       examIndex++;
@@ -144,19 +199,19 @@ export function renderDictationExam(container, user, wordList, onFinishExam, onB
 
     container.innerHTML = `
       <div class="game-container glass-card" style="text-align: center; align-items: center;">
-        <div class="teacher-avatar" style="font-size: 5rem; width: 110px; height: 110px; margin-bottom: 10px;">👩‍🏫</div>
-        <h2 style="font-size: 2.2rem; font-weight: 900; background: linear-gradient(90deg, #fbbf24, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        <div class="teacher-avatar" style="font-size: 5rem; width: 100px; height: 100px; margin-bottom: 10px;">👩‍🏫</div>
+        <h2 style="font-size: 2rem; font-weight: 900; background: linear-gradient(90deg, #fbbf24, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
           받아쓰기 시험 성적표
         </h2>
         <div style="font-size: 2rem; font-weight: 900; margin: 8px 0; color: #fbbf24;">
           ${stars} (${totalScore}점)
         </div>
 
-        <div style="width: 100%; max-width: 500px; text-align: left; margin: 16px 0; background: rgba(0,0,0,0.3); padding: 16px; border-radius: 16px;">
+        <div style="width: 100%; max-width: 520px; text-align: left; margin: 14px 0; background: rgba(0,0,0,0.3); padding: 16px; border-radius: 16px; max-height: 240px; overflow-y: auto;">
           <h4 style="margin-bottom: 10px; color: var(--text-muted);">시험 결과 세부사항:</h4>
           ${userAnswers.map((ans, i) => `
-            <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.08);">
-              <span>${i + 1}. 정답: <strong>${ans.wordObj.word}</strong> (${ans.wordObj.meaning})</span>
+            <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 0.95rem;">
+              <span>${i + 1}. [${ans.wordObj.isExpression ? '표현' : '단어'}] 정답: <strong>${ans.wordObj.word}</strong></span>
               <span style="color: ${ans.isCorrect ? '#10b981' : '#ef4444'}; font-weight: 800;">
                 ${ans.isCorrect ? '⭕ 정답' : `❌ (작성: ${ans.userAnswer})`}
               </span>
@@ -172,7 +227,7 @@ export function renderDictationExam(container, user, wordList, onFinishExam, onB
 
     container.querySelector('#btn-finish-report').addEventListener('click', () => {
       sound.playPop();
-      onFinishExam(totalScore);
+      onFinishExam(totalScore, wrongList);
     });
   }
 

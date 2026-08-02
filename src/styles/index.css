@@ -424,15 +424,69 @@ body {
   border-radius: 50px;
 }
 
-/* Game 1: Letter Catch Arena */
-.catch-arena {
+/* English 4-Line Notebook Paper Component */
+.notebook-paper {
   position: relative;
-  height: 380px;
-  background: rgba(15, 23, 42, 0.7);
-  border-radius: var(--radius-md);
-  border: 2px dashed rgba(255, 255, 255, 0.15);
+  width: 100%;
+  max-width: 520px;
+  min-height: 120px;
+  margin: 16px auto;
+  background: #fffdf5;
+  border-radius: 12px;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.06), 0 6px 20px rgba(0,0,0,0.2);
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   overflow: hidden;
   user-select: none;
+}
+
+.notebook-lines {
+  position: relative;
+  height: 72px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.notebook-line {
+  width: 100%;
+  height: 2px;
+}
+
+.notebook-line.top-red {
+  background: #f43f5e;
+}
+
+.notebook-line.mid-blue {
+  background: #3b82f6;
+  border-bottom: 1.5px dashed #93c5fd;
+}
+
+.notebook-line.bottom-red {
+  background: #f43f5e;
+}
+
+.notebook-text-overlay {
+  position: absolute;
+  top: 6px;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  display: flex;
+  align-items: flex-end;
+  font-family: 'Fredoka', 'Comic Sans MS', cursive, sans-serif;
+  font-size: 2.3rem;
+  font-weight: 700;
+  color: #1e293b;
+  letter-spacing: 2px;
+  line-height: 1;
+  padding-left: 8px;
+  pointer-events: none;
+  white-space: pre;
+  overflow-x: auto;
 }
 
 .falling-letter {

@@ -1,6 +1,7 @@
 import { sound } from '../services/sound.js';
+import { GRADES, UNITS } from '../data/words.js';
 
-export function renderNavbar(container, user, currentGrade, onOpenAuth, onGradeChange, onNavigateHome) {
+export function renderNavbar(container, user, currentGrade, currentUnit, onOpenAuth, onGradeChange, onUnitChange, onNavigateMyPage, onNavigateHome) {
   const isMuted = sound.muted;
   
   container.innerHTML = `
@@ -11,11 +12,18 @@ export function renderNavbar(container, user, currentGrade, onOpenAuth, onGradeC
       </div>
 
       <div class="nav-actions">
-        <!-- Grade Select -->
-        <select id="grade-select" class="grade-select">
-          <option value="grade1_2" ${currentGrade === 'grade1_2' ? 'selected' : ''}>초등 1~2학년 (기초)</option>
-          <option value="grade3_4" ${currentGrade === 'grade3_4' ? 'selected' : ''}>초등 3~4학년 (중급)</option>
-          <option value="grade5_6" ${currentGrade === 'grade5_6' ? 'selected' : ''}>초등 5~6학년 (고급)</option>
+        <!-- Grade Select (1~6학년) -->
+        <select id="grade-select" class="grade-select" style="min-width: 140px;">
+          ${GRADES.map(g => `
+            <option value="${g.key}" ${currentGrade === g.key ? 'selected' : ''}>${g.name}</option>
+          `).join('')}
+        </select>
+
+        <!-- Unit Select (1~12단원) -->
+        <select id="unit-select" class="grade-select" style="min-width: 100px; background: rgba(16, 185, 129, 0.2); border-color: #10b981;">
+          ${UNITS.map(u => `
+            <option value="${u.unit}" ${currentUnit === u.unit ? 'selected' : ''}>${u.name}</option>
+          `).join('')}
         </select>
 
         <!-- Ticket Counter -->
@@ -23,18 +31,20 @@ export function renderNavbar(container, user, currentGrade, onOpenAuth, onGradeC
           🎟️ <span id="ticket-count">${user.tickets}</span>장
         </div>
 
+        <!-- MyPage Button -->
+        <button id="btn-nav-mypage" class="btn-secondary" style="padding: 6px 14px; font-size: 0.9rem;">
+          👤 마이페이지
+        </button>
+
         <!-- Audio Toggle -->
         <button id="mute-toggle" class="btn-icon" title="${isMuted ? '음소거 해제' : '음소거'}">
           ${isMuted ? '🔇' : '🔊'}
         </button>
 
-        <!-- User Profile & Login Status Button -->
+        <!-- User Profile Button -->
         <button id="user-profile-btn" class="user-profile-btn">
           <span class="user-avatar">${user.avatar || '👦'}</span>
           <span class="user-name">${user.name}</span>
-          <span style="font-size: 0.8rem; padding: 2px 8px; border-radius: 50px; background: ${user.isAnonymous ? 'rgba(255,255,255,0.15)' : '#4285f4'};">
-            ${user.isAnonymous ? '👤 게스트' : '🌐 Google'}
-          </span>
         </button>
       </div>
     </nav>
@@ -49,6 +59,16 @@ export function renderNavbar(container, user, currentGrade, onOpenAuth, onGradeC
   container.querySelector('#grade-select').addEventListener('change', (e) => {
     sound.playPop();
     onGradeChange(e.target.value);
+  });
+
+  container.querySelector('#unit-select').addEventListener('change', (e) => {
+    sound.playPop();
+    onUnitChange(parseInt(e.target.value));
+  });
+
+  container.querySelector('#btn-nav-mypage').addEventListener('click', () => {
+    sound.playPop();
+    onNavigateMyPage();
   });
 
   container.querySelector('#mute-toggle').addEventListener('click', () => {
