@@ -5,9 +5,40 @@ export function renderTeacherAdmin(container, onBack) {
   let selectedGrade = 'grade5';
   let selectedUnit = 1;
   let isPinVerified = localStorage.getItem('kids_teacher_verified') === 'true';
-  const TEACHER_PIN = '1234'; // Default teacher PIN
+
+  const getTeacherPin = () => localStorage.getItem('kids_teacher_pin') || '1234';
+
+  function changeTeacherPin() {
+    const currentPin = getTeacherPin();
+    const inputCurrent = prompt('현재 선생님 PIN 번호를 입력하세요:');
+    if (!inputCurrent) return;
+
+    if (inputCurrent.trim() !== currentPin) {
+      sound.playWrong();
+      alert('현재 PIN 번호가 일치하지 않습니다!');
+      return;
+    }
+
+    const newPin = prompt('새로 사용할 4~6자리 PIN 번호를 입력하세요:');
+    if (!newPin || newPin.trim().length < 4) {
+      alert('PIN 번호는 4자리 이상이어야 합니다.');
+      return;
+    }
+
+    const confirmPin = prompt('확인을 위해 새 PIN 번호를 한 번 더 입력하세요:');
+    if (newPin.trim() !== confirmPin?.trim()) {
+      alert('새 PIN 번호가 서로 일치하지 않습니다.');
+      return;
+    }
+
+    localStorage.setItem('kids_teacher_pin', newPin.trim());
+    sound.playCorrect();
+    alert(`🎉 선생님 PIN 번호가 성공적으로 변경되었습니다!\n(새 비밀번호: ${newPin.trim()})`);
+  }
 
   function renderPinScreen() {
+    const activePin = getTeacherPin();
+
     container.innerHTML = `
       <div class="game-container glass-card" style="max-width: 480px; margin: 40px auto; text-align: center; padding: 32px;">
         <span style="font-size: 3.5rem;">👩‍🏫</span>
@@ -17,10 +48,10 @@ export function renderTeacherAdmin(container, onBack) {
           <span style="color: #fbbf24; font-weight: 700;">(기본 비밀번호: 1234)</span>
         </p>
         
-        <input type="password" id="teacher-pin-input" class="dictation-input" placeholder="PIN 번호 4자리..." maxlength="6" style="text-align: center; font-size: 1.5rem; letter-spacing: 6px; margin-bottom: 16px;" />
+        <input type="password" id="teacher-pin-input" class="dictation-input" placeholder="PIN 번호 입력..." maxlength="8" style="text-align: center; font-size: 1.5rem; letter-spacing: 6px; margin-bottom: 16px;" />
         
-        <div style="display: flex; gap: 12px; justify-content: center;">
-          <button id="btn-pin-cancel" class="btn-secondary" style="padding: 10px 24px;">◀ 뒤로가기</button>
+        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+          <button id="btn-pin-cancel" class="btn-secondary" style="padding: 10px 20px;">◀ 뒤로가기</button>
           <button id="btn-pin-submit" class="btn-primary" style="padding: 10px 28px; background: linear-gradient(135deg, #a855f7, #ec4899);">로그인 🔓</button>
         </div>
       </div>
@@ -35,14 +66,14 @@ export function renderTeacherAdmin(container, onBack) {
     });
 
     const checkPin = () => {
-      if (pinInput.value.trim() === TEACHER_PIN) {
+      if (pinInput.value.trim() === getTeacherPin()) {
         sound.playCorrect();
         localStorage.setItem('kids_teacher_verified', 'true');
         isPinVerified = true;
         renderAdminDashboard();
       } else {
         sound.playWrong();
-        alert('비밀번호가 올바르지 않습니다. (기본 비밀번호: 1234)');
+        alert('비밀번호가 올바르지 않습니다.');
         pinInput.value = '';
         pinInput.focus();
       }
@@ -74,7 +105,10 @@ export function renderTeacherAdmin(container, onBack) {
               단원별 단어와 주요 표현을 등록/수정하여 미니게임과 받아쓰기 시험에 즉시 반영하세요.
             </p>
           </div>
-          <button id="btn-admin-exit" class="btn-secondary" style="padding: 8px 20px;">◀ 나가기</button>
+          <div style="display: flex; gap: 8px;">
+            <button id="btn-change-pin" class="btn-secondary" style="padding: 8px 16px; font-size: 0.85rem; background: rgba(168, 85, 247, 0.2); border-color: #a855f7; color: #c084fc;">🔑 PIN 번호 변경</button>
+            <button id="btn-admin-exit" class="btn-secondary" style="padding: 8px 20px;">◀ 나가기</button>
+          </div>
         </div>
 
         <!-- Grade & Unit Selection Bar -->
@@ -194,6 +228,10 @@ export function renderTeacherAdmin(container, onBack) {
     `;
 
     // Event Handlers
+    container.querySelector('#btn-change-pin').addEventListener('click', () => {
+      sound.playPop();
+      changeTeacherPin();
+    });
     container.querySelector('#btn-admin-exit').addEventListener('click', () => {
       sound.playPop();
       onBack();
