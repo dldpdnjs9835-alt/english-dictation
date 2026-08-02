@@ -40,7 +40,7 @@ export function renderGameSelection(container, user, onSelectGame) {
       <div class="game-card glass-card exam-card" id="btn-exam" style="--card-accent: #f59e0b; --card-glow: rgba(245, 158, 11, 0.5);">
         <div class="game-icon-box">👩‍🏫</div>
         <div class="reward-pill" style="background: rgba(245, 158, 11, 0.25); color: #fbbf24;">필요: 티켓 🎟️ 1장 소모</div>
-        <h3 class="game-title">가상 선생님 받아쓰기 시험</h3>
+        <h3 class="game-title">받아쓰기 시험</h3>
         <p class="game-desc">선생님이 읽어주는 발음을 듣고 정확한 스펠링을 적어 명예의 전당에 도전해봐!</p>
         <button class="btn-primary" style="background: linear-gradient(135deg, #f59e0b 0%, #ec4899 100%);">
           ${user.tickets > 0 ? '시험 도전하기 🎟️' : '티켓 부족! 미니게임하기'}

@@ -22,7 +22,7 @@ export function renderDictationExam(container, user, wordList, onFinishExam, onB
   }
 
   let examIndex = 0;
-  const examWords = [...wordList].sort(() => 0.5 - Math.random()).slice(0, 5);
+  const examWords = [...wordList].sort(() => 0.5 - Math.random()).slice(0, 10);
   let correctCount = 0;
   let userAnswers = [];
 
@@ -32,10 +32,10 @@ export function renderDictationExam(container, user, wordList, onFinishExam, onB
     container.innerHTML = `
       <div class="game-container glass-card">
         <div class="game-header">
-          <button id="btn-exam-exit" class="btn-secondary">◀ 나가지</button>
-          <h2 style="font-size: 1.4rem; font-weight: 800; color: #f59e0b;">👩‍🏫 가상 선생님 받아쓰기 시험</h2>
+          <button id="btn-exam-exit" class="btn-secondary">◀ 나가기</button>
+          <h2 style="font-size: 1.4rem; font-weight: 800; color: #f59e0b;">📝 받아쓰기 시험</h2>
           <div class="game-stats">
-            <span class="stat-item" style="color: #fbbf24;">문제: ${examIndex + 1} / 5</span>
+            <span class="stat-item" style="color: #fbbf24;">문제: ${examIndex + 1} / 10</span>
           </div>
         </div>
 
@@ -54,7 +54,6 @@ export function renderDictationExam(container, user, wordList, onFinishExam, onB
           </button>
           <div style="display: flex; gap: 10px;">
             <button id="btn-speak-word" class="btn-secondary">단어 들려주기</button>
-            <button id="btn-speak-sentence" class="btn-secondary">예문 들려주기</button>
             <button id="btn-show-hint" class="btn-secondary">뜻 힌트 보기 💡</button>
           </div>
           <div id="hint-display" style="display: none; color: #fbbf24; font-weight: 700; font-size: 1.1rem;">
@@ -93,10 +92,6 @@ export function renderDictationExam(container, user, wordList, onFinishExam, onB
       sound.speak(currentObj.word);
     });
 
-    container.querySelector('#btn-speak-sentence').addEventListener('click', () => {
-      sound.speak(currentObj.sentence);
-    });
-
     container.querySelector('#btn-show-hint').addEventListener('click', () => {
       sound.playPop();
       const hintBox = container.querySelector('#hint-display');
@@ -122,7 +117,7 @@ export function renderDictationExam(container, user, wordList, onFinishExam, onB
       }
 
       examIndex++;
-      if (examIndex < 5) {
+      if (examIndex < 10) {
         renderExamQuestion();
       } else {
         showExamResult();
@@ -136,7 +131,7 @@ export function renderDictationExam(container, user, wordList, onFinishExam, onB
   }
 
   function showExamResult() {
-    const totalScore = (correctCount / 5) * 100;
+    const totalScore = (correctCount / 10) * 100;
     sound.playTicketReward();
 
     if (totalScore >= 80) {

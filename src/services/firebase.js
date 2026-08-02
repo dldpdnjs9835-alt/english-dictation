@@ -97,6 +97,7 @@ export const syncUserDataToFirestore = async (userProfile) => {
       tickets: userProfile.tickets,
       gamesCleared: userProfile.gamesCleared,
       dictationHighScore: userProfile.dictationHighScore,
+      perfectScoreCount: userProfile.perfectScoreCount || 0,
       lastUpdated: new Date().toISOString()
     }, { merge: true });
   } catch (err) {
@@ -131,6 +132,22 @@ export const subscribeTopGamesCleared = (callback) => {
       callback(leaderboard);
     }, (err) => {
       console.warn("Firestore games snapshot error:", err);
+    });
+  } catch (e) {
+    return () => {};
+  }
+};
+
+export const subscribeTopPerfectScores = (callback) => {
+  if (!isFirebaseReady || !db) return () => {};
+  try {
+    const q = query(collection(db, 'users'), orderBy('perfectScoreCount', 'desc'), limit(10));
+    return onSnapshot(q, (snapshot) => {
+      const leaderboard = [];
+      snapshot.forEach((doc) => leaderboard.push(doc.data()));
+      callback(leaderboard);
+    }, (err) => {
+      console.warn("Firestore perfect scores snapshot error:", err);
     });
   } catch (e) {
     return () => {};

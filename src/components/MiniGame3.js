@@ -16,9 +16,12 @@ export function renderMiniGame3(container, wordList, onComplete, onBack) {
     targetWord = targetObj.word.toUpperCase();
     userBlanks = [];
 
-    // Pick 1 or 2 random blank indices (vowels/consonants)
-    const blankCount = targetWord.length <= 4 ? 1 : 2;
-    const allIndices = Array.from({ length: targetWord.length }, (_, i) => i).sort(() => 0.5 - Math.random());
+    // Pick 30% to 50% random blank indices
+    const len = targetWord.length;
+    const minBlanks = Math.max(1, Math.floor(len * 0.3));
+    const maxBlanks = Math.max(minBlanks, Math.ceil(len * 0.5));
+    const blankCount = Math.floor(Math.random() * (maxBlanks - minBlanks + 1)) + minBlanks;
+    const allIndices = Array.from({ length: len }, (_, i) => i).sort(() => 0.5 - Math.random());
     blankIndices = allIndices.slice(0, blankCount).sort((a, b) => a - b);
 
     container.innerHTML = `

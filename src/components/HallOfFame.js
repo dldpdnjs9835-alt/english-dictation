@@ -1,18 +1,31 @@
 import { sound } from '../services/sound.js';
-import { subscribeTopTickets, subscribeTopGamesCleared, isFirebaseReady } from '../services/firebase.js';
+import { 
+  subscribeTopTickets, 
+  subscribeTopGamesCleared, 
+  subscribeTopPerfectScores, 
+  isFirebaseReady 
+} from '../services/firebase.js';
 
 export function renderHallOfFame(container, currentUser, localStorageManager, onBack) {
-  let activeTab = 'tickets'; // 'tickets' or 'games'
+  let activeTab = 'tickets'; // 'tickets', 'games', or 'perfect'
   let ticketList = [];
   let gameList = [];
+  let perfectList = [];
 
   function loadLocalData() {
     const allUsers = localStorageManager.getLocalHallOfFame();
     ticketList = [...allUsers].sort((a, b) => b.tickets - a.tickets).slice(0, 10);
     gameList = [...allUsers].sort((a, b) => b.gamesCleared - a.gamesCleared).slice(0, 10);
+    perfectList = [...allUsers].sort((a, b) => (b.perfectScoreCount || 0) - (a.perfectScoreCount || 0)).slice(0, 10);
   }
 
   loadLocalData();
+
+  function getActiveList() {
+    if (activeTab === 'games') return gameList;
+    if (activeTab === 'perfect') return perfectList;
+    return ticketList;
+  }
 
   function renderView() {
     container.innerHTML = `
@@ -28,18 +41,21 @@ export function renderHallOfFame(container, currentUser, localStorageManager, on
         </div>
 
         <!-- Leaderboard Tabs -->
-        <div class="hof-tabs">
+        <div class="hof-tabs" style="flex-wrap: wrap;">
           <div class="hof-tab ${activeTab === 'tickets' ? 'active' : ''}" id="tab-tickets">
-            🎟️ 티켓 부자 왕 Top 10
+            🎟️ 티켓 부자 왕
           </div>
           <div class="hof-tab ${activeTab === 'games' ? 'active' : ''}" id="tab-games">
-            🎮 미니게임 클리어 왕 Top 10
+            🎮 미니게임 클리어 왕
+          </div>
+          <div class="hof-tab ${activeTab === 'perfect' ? 'active' : ''}" id="tab-perfect">
+            ⭐ 받아쓰기 100점 마스터
           </div>
         </div>
 
         <!-- Leaderboard List -->
         <div class="hof-list">
-          ${renderListItems(activeTab === 'tickets' ? ticketList : gameList)}
+          ${renderListItems(getActiveList())}
         </div>
       </div>
     `;
@@ -60,6 +76,12 @@ export function renderHallOfFame(container, currentUser, localStorageManager, on
       activeTab = 'games';
       renderView();
     });
+
+    container.querySelector('#tab-perfect').addEventListener('click', () => {
+      sound.playPop();
+      activeTab = 'perfect';
+      renderView();
+    });
   }
 
   function renderListItems(list) {
@@ -77,6 +99,10 @@ export function renderHallOfFame(container, currentUser, localStorageManager, on
       const isMe = item.id === currentUser.id;
       const highlightStyle = isMe ? 'border: 2px solid var(--accent-pink); background: rgba(236,72,153,0.2);' : '';
 
+      let scoreDisplay = `🎟️ ${item.tickets || 0}장`;
+      if (activeTab === 'games') scoreDisplay = `🎮 ${item.gamesCleared || 0}회`;
+      if (activeTab === 'perfect') scoreDisplay = `⭐ ${item.perfectScoreCount || 0}회 만점`;
+
       return `
         <div class="hof-item rank-${rank > 3 ? 'other' : rank}" style="${highlightStyle}">
           <div class="rank-badge">${rankBadge}</div>
@@ -85,7 +111,7 @@ export function renderHallOfFame(container, currentUser, localStorageManager, on
             <span class="user-name">${item.name} ${isMe ? '<span style="color: var(--accent-pink); font-size: 0.8rem;">(나)</span>' : ''}</span>
           </div>
           <div class="score-value">
-            ${activeTab === 'tickets' ? `🎟️ ${item.tickets}장` : `🎮 ${item.gamesCleared}회`}
+            ${scoreDisplay}
           </div>
         </div>
       `;
@@ -96,17 +122,24 @@ export function renderHallOfFame(container, currentUser, localStorageManager, on
 
   // Setup Firebase real-time listeners if available
   if (isFirebaseReady) {
-    const unsubTickets = subscribeTopTickets((data) => {
+    subscribeTopTickets((data) => {
       if (data && data.length > 0) {
         ticketList = data;
         if (activeTab === 'tickets') renderView();
       }
     });
 
-    const unsubGames = subscribeTopGamesCleared((data) => {
+    subscribeTopGamesCleared((data) => {
       if (data && data.length > 0) {
         gameList = data;
         if (activeTab === 'games') renderView();
+      }
+    });
+
+    subscribeTopPerfectScores((data) => {
+      if (data && data.length > 0) {
+        perfectList = data;
+        if (activeTab === 'perfect') renderView();
       }
     });
   }

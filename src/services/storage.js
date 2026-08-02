@@ -7,16 +7,16 @@ const LEADERBOARD_KEY = 'kids_english_hof_v1';
 
 // Initial Mock Hall of Fame for vibrant initial experience
 const MOCK_HALL_OF_FAME = [
-  { id: 'bot-1', name: '영재미노', avatar: '👑', tickets: 18, gamesCleared: 24, dictationHighScore: 100 },
-  { id: 'bot-2', name: '스펠링마스터', avatar: '🦊', tickets: 15, gamesCleared: 20, dictationHighScore: 100 },
-  { id: 'bot-3', name: '영단어왕자', avatar: '🦄', tickets: 12, gamesCleared: 16, dictationHighScore: 90 },
-  { id: 'bot-4', name: '초등영어짱', avatar: '🐶', tickets: 10, gamesCleared: 14, dictationHighScore: 90 },
-  { id: 'bot-5', name: '귀염포포', avatar: '🐱', tickets: 8, gamesCleared: 11, dictationHighScore: 80 },
-  { id: 'bot-6', name: '단어탐험가', avatar: '🐻', tickets: 7, gamesCleared: 9, dictationHighScore: 80 },
-  { id: 'bot-7', name: '파닉스천재', avatar: '🐼', tickets: 6, gamesCleared: 8, dictationHighScore: 70 },
-  { id: 'bot-8', name: '해피스마일', avatar: '🦁', tickets: 5, gamesCleared: 7, dictationHighScore: 70 },
-  { id: 'bot-9', name: '영문법소녀', avatar: '🐯', tickets: 4, gamesCleared: 5, dictationHighScore: 60 },
-  { id: 'bot-10', name: '코딩어린이', avatar: '🤖', tickets: 3, gamesCleared: 4, dictationHighScore: 60 }
+  { id: 'bot-1', name: '영재미노', avatar: '👑', tickets: 18, gamesCleared: 24, dictationHighScore: 100, perfectScoreCount: 7 },
+  { id: 'bot-2', name: '스펠링마스터', avatar: '🦊', tickets: 15, gamesCleared: 20, dictationHighScore: 100, perfectScoreCount: 5 },
+  { id: 'bot-3', name: '영단어왕자', avatar: '🦄', tickets: 12, gamesCleared: 16, dictationHighScore: 100, perfectScoreCount: 4 },
+  { id: 'bot-4', name: '초등영어짱', avatar: '🐶', tickets: 10, gamesCleared: 14, dictationHighScore: 100, perfectScoreCount: 3 },
+  { id: 'bot-5', name: '귀염포포', avatar: '🐱', tickets: 8, gamesCleared: 11, dictationHighScore: 100, perfectScoreCount: 3 },
+  { id: 'bot-6', name: '단어탐험가', avatar: '🐻', tickets: 7, gamesCleared: 9, dictationHighScore: 100, perfectScoreCount: 2 },
+  { id: 'bot-7', name: '파닉스천재', avatar: '🐼', tickets: 6, gamesCleared: 8, dictationHighScore: 100, perfectScoreCount: 2 },
+  { id: 'bot-8', name: '해피스마일', avatar: '🦁', tickets: 5, gamesCleared: 7, dictationHighScore: 100, perfectScoreCount: 1 },
+  { id: 'bot-9', name: '영문법소녀', avatar: '🐯', tickets: 4, gamesCleared: 5, dictationHighScore: 100, perfectScoreCount: 1 },
+  { id: 'bot-10', name: '코딩어린이', avatar: '🤖', tickets: 3, gamesCleared: 4, dictationHighScore: 100, perfectScoreCount: 1 }
 ];
 
 export class StorageManager {
@@ -29,7 +29,9 @@ export class StorageManager {
     const data = localStorage.getItem(STORAGE_KEY);
     if (data) {
       try {
-        return JSON.parse(data);
+        const parsed = JSON.parse(data);
+        if (parsed.perfectScoreCount === undefined) parsed.perfectScoreCount = 0;
+        return parsed;
       } catch (e) {}
     }
     // Default guest profile
@@ -40,6 +42,7 @@ export class StorageManager {
       tickets: 2, // Start with 2 bonus tickets
       gamesCleared: 0,
       dictationHighScore: 0,
+      perfectScoreCount: 0,
       isAnonymous: true
     };
     this.saveUser(defaultUser);
@@ -78,6 +81,9 @@ export class StorageManager {
   updateDictationScore(score) {
     if (score > this.user.dictationHighScore) {
       this.user.dictationHighScore = score;
+    }
+    if (score === 100) {
+      this.user.perfectScoreCount = (this.user.perfectScoreCount || 0) + 1;
     }
     this.saveUser(this.user);
   }
