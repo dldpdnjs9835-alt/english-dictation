@@ -90,23 +90,23 @@ export function renderDictationExam(container, user, unitContent, onFinishExam, 
           </div>
         </div>
 
-        <!-- 4-Line Vector SVG English Notebook Typing Area -->
+        <!-- 4-Line Vector SVG English Notebook Typing Area (Widen to 800px & Center Aligned) -->
         <div class="notebook-paper">
-          <svg viewBox="0 0 540 120" style="width: 100%; height: 120px; overflow: visible;">
+          <svg viewBox="0 0 800 120" style="width: 100%; height: 120px; overflow: visible;">
             <!-- Line 1: Top Black Line (y=16) -->
-            <line x1="0" y1="16" x2="540" y2="16" stroke="#334155" stroke-width="2" />
+            <line x1="0" y1="16" x2="800" y2="16" stroke="#334155" stroke-width="2" />
             
             <!-- Line 2: Upper Mid Pink Dashed Line (y=51) -->
-            <line x1="0" y1="51" x2="540" y2="51" stroke="#f472b6" stroke-width="2" stroke-dasharray="6 6" />
+            <line x1="0" y1="51" x2="800" y2="51" stroke="#f472b6" stroke-width="2" stroke-dasharray="6 6" />
             
             <!-- Line 3: 2nd from Bottom SOLID RED BASELINE (y=86) -->
-            <line x1="0" y1="86" x2="540" y2="86" stroke="#ef4444" stroke-width="2.5" />
+            <line x1="0" y1="86" x2="800" y2="86" stroke="#ef4444" stroke-width="2.5" />
             
             <!-- Line 4: Bottom Black Line (y=116) -->
-            <line x1="0" y1="116" x2="540" y2="116" stroke="#334155" stroke-width="2" />
+            <line x1="0" y1="116" x2="800" y2="116" stroke="#334155" stroke-width="2" />
 
-            <!-- Single Unified Vector Text Node (Font-size 78 for 100% natural letter proportions) -->
-            <text x="12" y="86" id="svg-notebook-text" font-family="'Comic Neue', 'Fredoka', 'Comic Sans MS', cursive, sans-serif" font-size="78" font-weight="700" fill="#0f172a" letter-spacing="1.5"></text>
+            <!-- Single Unified Center-Aligned Vector Text Node (text-anchor="middle") -->
+            <text x="400" y="86" id="svg-notebook-text" text-anchor="middle" font-family="'Comic Neue', 'Fredoka', 'Comic Sans MS', cursive, sans-serif" font-size="76" font-weight="700" fill="#0f172a" letter-spacing="1.5"></text>
           </svg>
         </div>
 
@@ -127,9 +127,16 @@ export function renderDictationExam(container, user, unitContent, onFinishExam, 
     const svgNotebookText = container.querySelector('#svg-notebook-text');
     inputEl.focus();
 
-    // Sync typing to unified SVG vector text node
+    // Sync typing to centered SVG vector text node with dynamic auto-scaling font size for long sentences
     inputEl.addEventListener('input', (e) => {
-      svgNotebookText.textContent = e.target.value;
+      const val = e.target.value;
+      svgNotebookText.textContent = val;
+
+      const len = val.length;
+      const baseSize = 76;
+      // Auto-scale font size if sentence is long so it NEVER truncates
+      const scaledSize = len > 12 ? Math.max(38, Math.round(baseSize - (len - 12) * 1.8)) : baseSize;
+      svgNotebookText.setAttribute('font-size', scaledSize);
     });
 
     container.querySelector('#btn-exam-exit').addEventListener('click', () => {
