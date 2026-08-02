@@ -8,7 +8,7 @@ export function renderMiniGame1(container, wordList, onComplete, onBack) {
   let targetWordObj = sessionWords[currentIndex];
   let targetWord = targetWordObj.word.toUpperCase().replace(/[^A-Z]/g, '');
   
-  const GRID_SIZE = 6;
+  const GRID_SIZE = 10;
   let gridMatrix = []; // 6x6 array of letters
   let selectedIndices = []; // array of cell indices [r, c] selected by player
   let isGameOver = false;

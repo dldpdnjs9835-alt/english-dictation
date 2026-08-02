@@ -14,7 +14,7 @@ export function renderGameSelection(container, user, onSelectGame) {
         <div class="game-icon-box">🔍</div>
         <div class="reward-pill">보상: 티켓 🎟️ +1</div>
         <h3 class="game-title">단어 숨은그림찾기</h3>
-        <p class="game-desc">6x6 글자 판 속에 가로, 세로, 대각선으로 몰래 숨어 있는 영단어를 찾아봐!</p>
+        <p class="game-desc">10x10 글자 판 속에 가로, 세로, 대각선으로 몰래 숨어 있는 긴 영단어까지 찾아봐!</p>
         <button class="btn-primary" style="background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);">게임 시작</button>
       </div>
 
