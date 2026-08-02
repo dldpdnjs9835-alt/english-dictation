@@ -83,28 +83,33 @@ export function renderMiniGame1(container, wordList, onComplete, onBack) {
   }
 
   function createWordSearchGrid(word, size) {
-    // Create empty size x size matrix
     const grid = Array.from({ length: size }, () => Array(size).fill(''));
     const len = word.length;
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-    // Decide orientation: 0 = Horizontal (left to right), 1 = Vertical (top to bottom)
-    const isHorizontal = Math.random() < 0.5;
+    // Directions: 0 = Horizontal (가로), 1 = Vertical (세로), 2 = Diagonal (대각선 ↘)
+    const direction = Math.floor(Math.random() * 3);
 
-    let startR = 0;
-    let startC = 0;
-
-    if (isHorizontal) {
-      startR = Math.floor(Math.random() * size);
-      startC = Math.floor(Math.random() * (size - len + 1));
+    if (direction === 0) {
+      // Horizontal
+      const startR = Math.floor(Math.random() * size);
+      const startC = Math.floor(Math.random() * (size - len + 1));
       for (let i = 0; i < len; i++) {
         grid[startR][startC + i] = word[i];
       }
-    } else {
-      startR = Math.floor(Math.random() * (size - len + 1));
-      startC = Math.floor(Math.random() * size);
+    } else if (direction === 1) {
+      // Vertical
+      const startR = Math.floor(Math.random() * (size - len + 1));
+      const startC = Math.floor(Math.random() * size);
       for (let i = 0; i < len; i++) {
         grid[startR + i][startC] = word[i];
+      }
+    } else {
+      // Diagonal (대각선 ↘)
+      const startR = Math.floor(Math.random() * (size - len + 1));
+      const startC = Math.floor(Math.random() * (size - len + 1));
+      for (let i = 0; i < len; i++) {
+        grid[startR + i][startC + i] = word[i];
       }
     }
 

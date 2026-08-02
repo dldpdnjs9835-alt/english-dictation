@@ -148,9 +148,14 @@ export function renderDictationExam(container, user, unitContent, onFinishExam, 
       const val = inputEl.value.trim();
       if (!val) return;
 
-      // STRICT EXACT MATCH: Case, Punctuation (. ? !), Spacing must match 100%!
-      const targetExact = currentObj.word.trim();
-      const isCorrect = (val === targetExact);
+      // Normalize quotes: convert curly quotes/apostrophes (’, ‘, `) to standard '
+      const normalizeText = (str) => str ? str.trim().replace(/[’‘`]/g, "'") : '';
+
+      const targetExact = normalizeText(currentObj.word);
+      const userExact = normalizeText(val);
+
+      // STRICT EXACT MATCH: Case, Punctuation (. ? !), Spacing must match!
+      const isCorrect = (userExact === targetExact);
 
       userAnswers.push({
         wordObj: currentObj,

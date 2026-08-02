@@ -430,13 +430,13 @@ body {
 .notebook-paper {
   position: relative;
   width: 100%;
-  max-width: 540px;
-  min-height: 150px;
+  max-width: 560px;
+  min-height: 160px;
   margin: 16px auto;
   background: #ffffff;
   border-radius: 14px;
   box-shadow: inset 0 0 8px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.25);
-  padding: 24px 28px;
+  padding: 26px 28px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -446,7 +446,7 @@ body {
 
 .notebook-lines {
   position: relative;
-  height: 100px;
+  height: 108px;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -458,39 +458,41 @@ body {
   height: 1.5px;
 }
 
-/* Line 1: Top Black/Dark Line */
+/* Line 1 (Top Black): Upper boundary of top row */
 .notebook-line.top-black {
   background: #334155;
+  height: 2px;
 }
 
-/* Line 2: Upper Mid Red/Pink Dashed Line */
+/* Line 2 (Upper Mid Red/Pink Dashed): Boundary between top row and mid row */
 .notebook-line.mid-red-dashed {
   background: transparent;
   border-bottom: 1.5px dashed #f472b6;
 }
 
-/* Line 3: Lower Mid SOLID RED BASELINE (Writing Line) */
+/* Line 3 (Solid Red Baseline): 2nd from bottom - Base line where letters rest */
 .notebook-line.baseline-red {
   background: #ef4444;
+  height: 2.5px;
+}
+
+/* Line 4 (Bottom Black): Lower boundary for descender tails */
+.notebook-line.bottom-black {
+  background: #334155;
   height: 2px;
 }
 
-/* Line 4: Bottom Black/Dark Line */
-.notebook-line.bottom-black {
-  background: #334155;
-}
-
-/* Handwriting Text Overlay */
+/* Handwriting Text Overlay: Uppercase/Tall letters = 2 Rows (72px), Basic lowercase = 1 Row (36px) */
 .notebook-text-overlay {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  height: 66px; /* Exactly aligns letters baseline on 3rd Red Line! */
+  height: 72px; /* Top Line (0px) to Solid Red Line 3 (72px) */
   display: flex;
   align-items: flex-end;
   font-family: 'Comic Neue', 'Fredoka', cursive, sans-serif;
-  font-size: 2.5rem;
+  font-size: 3.2rem;
   font-weight: 700;
   color: #0f172a;
   letter-spacing: 3px;

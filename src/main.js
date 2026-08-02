@@ -6,6 +6,7 @@ import { renderGameSelection } from './components/GameSelection.js';
 import { renderMiniGame1 } from './components/MiniGame1.js';
 import { renderMiniGame2 } from './components/MiniGame2.js';
 import { renderMiniGame3 } from './components/MiniGame3.js';
+import { renderMiniGame4 } from './components/MiniGame4.js';
 import { renderDictationExam } from './components/DictationExam.js';
 import { renderHallOfFame } from './components/HallOfFame.js';
 import { renderAuthModal } from './components/AuthModal.js';
@@ -109,6 +110,19 @@ class App {
         renderMiniGame3(
           mainContent,
           wordList,
+          () => {
+            storage.addTicket(1);
+            this.currentView = 'home';
+            this.render();
+          },
+          () => { this.currentView = 'home'; this.render(); }
+        );
+        break;
+
+      case 'game4':
+        renderMiniGame4(
+          mainContent,
+          unitContent,
           () => {
             storage.addTicket(1);
             this.currentView = 'home';

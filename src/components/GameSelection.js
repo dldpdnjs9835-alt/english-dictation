@@ -14,7 +14,7 @@ export function renderGameSelection(container, user, onSelectGame) {
         <div class="game-icon-box">🔍</div>
         <div class="reward-pill">보상: 티켓 🎟️ +1</div>
         <h3 class="game-title">단어 숨은그림찾기</h3>
-        <p class="game-desc">6x6 글자 판 속에 몰래 숨어 있는 목표 영단어를 찾아서 쏙쏙 조립해봐!</p>
+        <p class="game-desc">6x6 글자 판 속에 가로, 세로, 대각선으로 몰래 숨어 있는 영단어를 찾아봐!</p>
         <button class="btn-primary" style="background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);">게임 시작</button>
       </div>
 
@@ -34,6 +34,15 @@ export function renderGameSelection(container, user, onSelectGame) {
         <h3 class="game-title">소리듣고 빈칸 채우기</h3>
         <p class="game-desc">선생님 발음을 듣고 단어 속 쏙 빠진 1~2개 핵심 빈칸 알파벳만 스피드하게 맞춰보세요!</p>
         <button class="btn-primary" style="background: linear-gradient(135deg, #10b981 0%, #f59e0b 100%);">게임 시작</button>
+      </div>
+
+      <!-- Game 4 -->
+      <div class="game-card glass-card" id="btn-game4" style="--card-accent: #a855f7; --card-glow: rgba(168, 85, 247, 0.4);">
+        <div class="game-icon-box">🧩</div>
+        <div class="reward-pill">보상: 티켓 🎟️ +1</div>
+        <h3 class="game-title">문장 단어 순서 맞추기</h3>
+        <p class="game-desc">선생님이 들려주는 영문장의 뜻을 보고 흩어진 단어 조각을 순서대로 맞추는 퍼즐!</p>
+        <button class="btn-primary" style="background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);">게임 시작</button>
       </div>
 
       <!-- Dictation Exam (Requires Ticket) -->
@@ -75,6 +84,11 @@ export function renderGameSelection(container, user, onSelectGame) {
   container.querySelector('#btn-game3').addEventListener('click', () => {
     sound.playPop();
     onSelectGame('game3');
+  });
+
+  container.querySelector('#btn-game4').addEventListener('click', () => {
+    sound.playPop();
+    onSelectGame('game4');
   });
 
   container.querySelector('#btn-exam').addEventListener('click', () => {
