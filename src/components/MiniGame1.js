@@ -70,24 +70,34 @@ export function renderMiniGame1(container, wordList, onComplete, onBack) {
     // Letters needed + extra distractor letters
     const wordLetters = currentTargetWord.split('');
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const extraCount = 5;
+    const extraCount = Math.max(3, 8 - wordLetters.length);
     const distractors = Array.from({ length: extraCount }, () => alphabet[Math.floor(Math.random() * alphabet.length)]);
 
     const allLetters = [...wordLetters, ...distractors].sort(() => 0.5 - Math.random());
+    const total = allLetters.length;
 
+    // Grid distribution to prevent overlap (2 rows or 3 rows)
+    const cols = Math.ceil(total / 2);
+    
     allLetters.forEach((letter, i) => {
       const bubble = document.createElement('div');
       bubble.className = 'bubble';
       bubble.innerText = letter;
 
-      // Random position & animation speed
-      const leftPercent = 5 + (i * (85 / allLetters.length)) + Math.random() * 5;
-      const duration = 5 + Math.random() * 4;
-      const delay = Math.random() * 2;
+      // Calculate 2D position in grid with slight random offset
+      const row = Math.floor(i / cols);
+      const col = i % cols;
 
-      bubble.style.left = `${leftPercent}%`;
-      bubble.style.animationDuration = `${duration}s`;
-      bubble.style.animationDelay = `${delay}s`;
+      const leftPercent = 10 + (col * (75 / cols)) + (Math.random() * 6 - 3);
+      const topPercent = (row === 0 ? 15 : 55) + (Math.random() * 12 - 6);
+
+      const animDuration = 2.5 + Math.random() * 1.5;
+      const animDelay = Math.random() * 1.5;
+
+      bubble.style.left = `${Math.max(5, Math.min(85, leftPercent))}%`;
+      bubble.style.top = `${Math.max(10, Math.min(75, topPercent))}%`;
+      bubble.style.animationDuration = `${animDuration}s`;
+      bubble.style.animationDelay = `${animDelay}s`;
 
       bubble.addEventListener('click', () => handleBubbleClick(bubble, letter));
       arena.appendChild(bubble);
@@ -134,7 +144,7 @@ export function renderMiniGame1(container, wordList, onComplete, onBack) {
       bubbleEl.style.border = '3px solid #ef4444';
       setTimeout(() => {
         bubbleEl.style.border = 'none';
-        bubbleEl.style.animation = 'floatUp 6s linear infinite';
+        bubbleEl.style.animation = 'floatBob 3s infinite ease-in-out alternate';
       }, 500);
     }
   }
