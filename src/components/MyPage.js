@@ -69,6 +69,68 @@ export function renderMyPage(container, user, onSaveUser, onBack) {
     attachTabEvents();
   }
 
+  function renderScoreTrendChart(history) {
+    if (!history || history.length === 0) return '';
+    
+    // Sort oldest to newest (last 10 entries)
+    const sorted = [...history].sort((a, b) => a.timestamp - b.timestamp).slice(-10);
+    if (sorted.length < 1) return '';
+
+    const width = 500;
+    const height = 140;
+    const paddingX = 40;
+    const paddingY = 25;
+
+    const chartW = width - paddingX * 2;
+    const chartH = height - paddingY * 2;
+
+    const points = sorted.map((rec, i) => {
+      const x = sorted.length === 1 ? width / 2 : paddingX + (i / (sorted.length - 1)) * chartW;
+      const y = (height - paddingY) - (rec.score / 100) * chartH;
+      return { x, y, score: rec.score, label: `${rec.unitName || '시험'}` };
+    });
+
+    const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+    const areaD = `${pathD} L ${points[points.length - 1].x} ${height - paddingY} L ${points[0].x} ${height - paddingY} Z`;
+
+    return `
+      <div style="background: rgba(15, 23, 42, 0.6); border-radius: 16px; padding: 14px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1);">
+        <h4 style="font-size: 1rem; font-weight: 800; color: #f472b6; margin-bottom: 8px;">
+          📈 받아쓰기 시험 성적 변화 추이 (최근 ${sorted.length}회)
+        </h4>
+        <svg viewBox="0 0 ${width} ${height}" style="width: 100%; height: 140px; overflow: visible;">
+          <!-- Grid Lines -->
+          <line x1="${paddingX}" y1="${paddingY}" x2="${width - paddingX}" y2="${paddingY}" stroke="rgba(255,255,255,0.1)" stroke-dasharray="4" />
+          <line x1="${paddingX}" y1="${paddingY + chartH / 2}" x2="${width - paddingX}" y2="${paddingY + chartH / 2}" stroke="rgba(255,255,255,0.1)" stroke-dasharray="4" />
+          <line x1="${paddingX}" y1="${height - paddingY}" x2="${width - paddingX}" y2="${height - paddingY}" stroke="rgba(255,255,255,0.2)" />
+
+          <!-- Y Axis Labels -->
+          <text x="${paddingX - 10}" y="${paddingY + 4}" fill="rgba(255,255,255,0.5)" font-size="10" text-anchor="end">100</text>
+          <text x="${paddingX - 10}" y="${paddingY + chartH / 2 + 4}" fill="rgba(255,255,255,0.5)" font-size="10" text-anchor="end">50</text>
+          <text x="${paddingX - 10}" y="${height - paddingY + 4}" fill="rgba(255,255,255,0.5)" font-size="10" text-anchor="end">0</text>
+
+          <!-- Gradient Area -->
+          <defs>
+            <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#ec4899" stop-opacity="0.4" />
+              <stop offset="100%" stop-color="#ec4899" stop-opacity="0.0" />
+            </linearGradient>
+          </defs>
+          <path d="${areaD}" fill="url(#chartGradient)" />
+
+          <!-- Line Path -->
+          <path d="${pathD}" fill="none" stroke="#ec4899" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" />
+
+          <!-- Data Points & Score Badges -->
+          ${points.map(p => `
+            <circle cx="${p.x}" cy="${p.y}" r="6" fill="#fbbf24" stroke="#fff" stroke-width="2" />
+            <text x="${p.x}" y="${p.y - 10}" fill="#fbbf24" font-size="11" font-weight="900" text-anchor="middle">${p.score}점</text>
+          `).join('')}
+        </svg>
+      </div>
+    `;
+  }
+
   function renderHistorySection() {
     if (!examHistory || examHistory.length === 0) {
       return `
@@ -80,7 +142,9 @@ export function renderMyPage(container, user, onSaveUser, onBack) {
     }
 
     return `
-      <div style="max-height: 300px; overflow-y: auto; padding-right: 6px;">
+      ${renderScoreTrendChart(examHistory)}
+
+      <div style="max-height: 240px; overflow-y: auto; padding-right: 6px;">
         ${examHistory.map(rec => `
           <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.06); padding: 12px 16px; border-radius: 12px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.1);">
             <div>

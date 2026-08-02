@@ -93,17 +93,17 @@ export function renderDictationExam(container, user, unitContent, onFinishExam, 
         <!-- 4-Line English Notebook Typing Area -->
         <div class="notebook-paper">
           <div class="notebook-lines">
-            <div class="notebook-line top-red"></div>
-            <div class="notebook-line mid-blue"></div>
-            <div class="notebook-line mid-blue"></div>
-            <div class="notebook-line bottom-red"></div>
+            <div class="notebook-line top-blue" title="1st Line (Top Blue)"></div>
+            <div class="notebook-line mid-blue-dashed" title="2nd Line (Mid Blue Dashed)"></div>
+            <div class="notebook-line baseline-red" title="3rd Line (Red Baseline - Write here!)"></div>
+            <div class="notebook-line bottom-blue" title="4th Line (Bottom Blue)"></div>
             <div class="notebook-text-overlay" id="notebook-text"></div>
           </div>
         </div>
 
         <!-- Hidden/Active Typing Input Box -->
         <div class="dictation-input-box" style="margin-top: 6px;">
-          <input type="text" id="dictation-input" class="dictation-input" placeholder="${isExpr ? '영어 표현 문장 입력...' : '스펠링 입력...'}" autocomplete="off" style="font-size: 1.2rem;" />
+          <input type="text" id="dictation-input" class="dictation-input" placeholder="${isExpr ? '대소문자/문장부호/띄어쓰기 엄격 입력...' : '스펠링 엄격 입력...'}" autocomplete="off" style="font-size: 1.2rem;" />
           <button id="btn-submit-answer" class="btn-primary" style="font-size: 1.2rem; padding: 12px 36px;">
             제출하기 ➔
           </button>
@@ -148,11 +148,10 @@ export function renderDictationExam(container, user, unitContent, onFinishExam, 
       const val = inputEl.value.trim();
       if (!val) return;
 
-      // Clean punctuation & spacing for comparison
-      const cleanUser = val.toLowerCase().replace(/[^a-z0-9]/g, '');
-      const cleanTarget = currentObj.word.toLowerCase().replace(/[^a-z0-9]/g, '');
+      // STRICT EXACT MATCH: Case, Punctuation (. ? !), Spacing must match 100%!
+      const targetExact = currentObj.word.trim();
+      const isCorrect = (val === targetExact);
 
-      const isCorrect = cleanUser === cleanTarget;
       userAnswers.push({
         wordObj: currentObj,
         userAnswer: val,

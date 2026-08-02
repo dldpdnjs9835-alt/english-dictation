@@ -7,9 +7,10 @@ export function renderMiniGame1(container, wordList, onComplete, onBack) {
 
   let targetWordObj = sessionWords[currentIndex];
   let targetWord = targetWordObj.word.toUpperCase();
-  let filledStatus = []; // array of booleans indicating if slot i is filled
+  let filledStatus = []; // array of booleans
   let fallingItems = []; // active falling letters
   let basketXPercent = 50; // basket center position (0-100%)
+  let keyVelocity = 0; // -1 for left, 1 for right, 0 for stop
   let animationFrameId = null;
   let spawnTimerId = null;
   let isGameOver = false;
@@ -20,6 +21,7 @@ export function renderMiniGame1(container, wordList, onComplete, onBack) {
     filledStatus = Array(targetWord.length).fill(false);
     fallingItems = [];
     basketXPercent = 50;
+    keyVelocity = 0;
 
     container.innerHTML = `
       <div class="game-container glass-card">
@@ -31,17 +33,17 @@ export function renderMiniGame1(container, wordList, onComplete, onBack) {
           </div>
         </div>
 
-        <div style="text-align: center; margin: 6px 0;">
+        <div style="text-align: center; margin: 4px 0;">
           <div style="font-size: 1.15rem; font-weight: 700; color: var(--text-muted);">
             뜻: <span style="color: #fff;">${targetWordObj.meaning}</span> (${targetWordObj.hint})
           </div>
-          <button id="btn-re-speak" class="btn-secondary" style="margin-top: 6px; padding: 4px 14px; font-size: 0.85rem;">
+          <button id="btn-re-speak" class="btn-secondary" style="margin-top: 4px; padding: 4px 14px; font-size: 0.85rem;">
             🔊 소리 다시 듣기
           </button>
         </div>
 
         <!-- Word Progress Display (Slots) -->
-        <div id="word-progress" class="slots-container" style="margin: 10px 0;">
+        <div id="word-progress" class="slots-container" style="margin: 8px 0;">
           ${targetWord.split('').map((char, i) => `
             <div class="slot-box" id="catch-slot-${i}">_</div>
           `).join('')}
@@ -52,10 +54,17 @@ export function renderMiniGame1(container, wordList, onComplete, onBack) {
           <div id="catch-basket" class="catch-basket" style="left: 50%;">🧺</div>
         </div>
 
-        <!-- Touch / Mobile Controls -->
-        <div style="display: flex; justify-content: space-between; gap: 12px; margin-top: 10px;">
-          <button id="btn-move-left" class="btn-secondary" style="flex: 1; padding: 12px; font-size: 1.2rem;">◀ 왼쪽</button>
-          <button id="btn-move-right" class="btn-secondary" style="flex: 1; padding: 12px; font-size: 1.2rem;">오른쪽 ▶</button>
+        <!-- Joystick Controller (Below arena to avoid hiding basket) -->
+        <div style="display: flex; flex-direction: column; align-items: center; margin-top: 8px;">
+          <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px;">
+            🕹️ 조이스틱 드래그 / 키보드 ◀ ▶ 방향키 조작
+          </div>
+          <div class="joystick-container">
+            <div class="joystick-base" id="joystick-base">
+              <div class="joystick-track-line"></div>
+              <div class="joystick-knob" id="joystick-knob">🕹️</div>
+            </div>
+          </div>
         </div>
       </div>
     `;
@@ -79,51 +88,76 @@ export function renderMiniGame1(container, wordList, onComplete, onBack) {
   function setupControls() {
     const arena = container.querySelector('#catch-arena');
     const basket = container.querySelector('#catch-basket');
-    if (!arena || !basket) return;
+    const joystickBase = container.querySelector('#joystick-base');
+    const joystickKnob = container.querySelector('#joystick-knob');
+    if (!arena || !basket || !joystickBase || !joystickKnob) return;
 
-    // Mouse movement in arena
-    arena.addEventListener('mousemove', (e) => {
+    // Mouse/Touch movement directly in arena
+    const handleDirectPointerMove = (clientX) => {
       const rect = arena.getBoundingClientRect();
-      const relativeX = e.clientX - rect.left;
-      basketXPercent = Math.max(5, Math.min(95, (relativeX / rect.width) * 100));
+      const relativeX = clientX - rect.left;
+      basketXPercent = Math.max(8, Math.min(92, (relativeX / rect.width) * 100));
       basket.style.left = `${basketXPercent}%`;
-    });
+    };
 
-    // Touch movement in arena
+    arena.addEventListener('mousemove', (e) => handleDirectPointerMove(e.clientX));
     arena.addEventListener('touchmove', (e) => {
-      if (e.touches.length > 0) {
-        const rect = arena.getBoundingClientRect();
-        const relativeX = e.touches[0].clientX - rect.left;
-        basketXPercent = Math.max(5, Math.min(95, (relativeX / rect.width) * 100));
-        basket.style.left = `${basketXPercent}%`;
-      }
+      if (e.touches.length > 0) handleDirectPointerMove(e.touches[0].clientX);
     });
 
-    // Button controls
-    const leftBtn = container.querySelector('#btn-move-left');
-    const rightBtn = container.querySelector('#btn-move-right');
+    // Joystick Drag Control Logic
+    let isDraggingJoystick = false;
+    let joystickStartX = 0;
 
-    if (leftBtn) {
-      leftBtn.addEventListener('click', () => {
-        basketXPercent = Math.max(8, basketXPercent - 15);
-        basket.style.left = `${basketXPercent}%`;
-      });
-    }
-    if (rightBtn) {
-      rightBtn.addEventListener('click', () => {
-        basketXPercent = Math.min(92, basketXPercent + 15);
-        basket.style.left = `${basketXPercent}%`;
-      });
-    }
+    const onJoystickStart = (clientX) => {
+      isDraggingJoystick = true;
+      const rect = joystickBase.getBoundingClientRect();
+      joystickStartX = rect.left + rect.width / 2;
+    };
 
-    // Keyboard arrow keys
+    const onJoystickMove = (clientX) => {
+      if (!isDraggingJoystick) return;
+      const deltaX = clientX - joystickStartX;
+      const maxDelta = 35; // max knob displacement
+      const clampedDelta = Math.max(-maxDelta, Math.min(maxDelta, deltaX));
+
+      joystickKnob.style.transform = `translateX(${clampedDelta}px)`;
+      
+      // Move basket proportionally
+      const moveAmount = (clampedDelta / maxDelta) * 2.2;
+      basketXPercent = Math.max(8, Math.min(92, basketXPercent + moveAmount));
+      basket.style.left = `${basketXPercent}%`;
+    };
+
+    const onJoystickEnd = () => {
+      isDraggingJoystick = false;
+      joystickKnob.style.transform = `translateX(0px)`;
+    };
+
+    joystickBase.addEventListener('mousedown', (e) => onJoystickStart(e.clientX));
+    window.addEventListener('mousemove', (e) => onJoystickMove(e.clientX));
+    window.addEventListener('mouseup', onJoystickEnd);
+
+    joystickBase.addEventListener('touchstart', (e) => {
+      if (e.touches.length > 0) onJoystickStart(e.touches[0].clientX);
+    });
+    window.addEventListener('touchmove', (e) => {
+      if (e.touches.length > 0) onJoystickMove(e.touches[0].clientX);
+    });
+    window.addEventListener('touchend', onJoystickEnd);
+
+    // Keyboard Arrow Keys (Left / Right / A / D)
     window.onkeydown = (e) => {
-      if (e.key === 'ArrowLeft') {
-        basketXPercent = Math.max(8, basketXPercent - 10);
-        basket.style.left = `${basketXPercent}%`;
-      } else if (e.key === 'ArrowRight') {
-        basketXPercent = Math.min(92, basketXPercent + 10);
-        basket.style.left = `${basketXPercent}%`;
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        keyVelocity = -1.8;
+      } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        keyVelocity = 1.8;
+      }
+    };
+
+    window.onkeyup = (e) => {
+      if (['ArrowLeft', 'ArrowRight', 'a', 'A', 'd', 'D'].includes(e.key)) {
+        keyVelocity = 0;
       }
     };
   }
@@ -133,16 +167,13 @@ export function renderMiniGame1(container, wordList, onComplete, onBack) {
     const arena = container.querySelector('#catch-arena');
     if (!arena) return;
 
-    // Unfilled letters of target word + distractors
     const unfulfilledChars = targetWord.split('').filter((_, i) => !filledStatus[i]);
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     
     let letterToSpawn = '';
     if (Math.random() < 0.65 && unfulfilledChars.length > 0) {
-      // 65% chance to spawn needed letter
       letterToSpawn = unfulfilledChars[Math.floor(Math.random() * unfulfilledChars.length)];
     } else {
-      // 35% chance to spawn random distractor
       letterToSpawn = alphabet[Math.floor(Math.random() * alphabet.length)];
     }
 
@@ -154,7 +185,6 @@ export function renderMiniGame1(container, wordList, onComplete, onBack) {
     itemEl.style.left = `${leftPercent}%`;
     itemEl.style.top = `-60px`;
 
-    // Click handler on letter as alternate catch method
     itemEl.addEventListener('click', () => {
       handleCatchLetter(letterToSpawn, itemEl);
     });
@@ -181,26 +211,31 @@ export function renderMiniGame1(container, wordList, onComplete, onBack) {
       const basket = container.querySelector('#catch-basket');
       if (!arena) return;
 
+      // Update basket X from keyboard velocity
+      if (keyVelocity !== 0) {
+        basketXPercent = Math.max(8, Math.min(92, basketXPercent + keyVelocity));
+        basket.style.left = `${basketXPercent}%`;
+      }
+
       const arenaHeight = arena.clientHeight || 380;
-      const basketY = arenaHeight - 60; // collision zone Y
+      const basketY = arenaHeight - 60;
 
       for (let i = fallingItems.length - 1; i >= 0; i--) {
         const item = fallingItems[i];
         item.yPos += item.speed;
         item.el.style.top = `${item.yPos}px`;
 
-        // Check Collision with Basket at bottom
+        // Check Collision with Basket
         if (item.yPos >= basketY && item.yPos <= basketY + 35) {
           const dist = Math.abs(item.xPercent - basketXPercent);
           if (dist < 14) {
-            // Collision caught!
             handleCatchLetter(item.letter, item.el);
             fallingItems.splice(i, 1);
             continue;
           }
         }
 
-        // Out of bottom bounds -> remove
+        // Out of bottom bounds
         if (item.yPos > arenaHeight + 60) {
           item.el.remove();
           fallingItems.splice(i, 1);
@@ -216,7 +251,6 @@ export function renderMiniGame1(container, wordList, onComplete, onBack) {
   function handleCatchLetter(letter, itemEl) {
     itemEl.remove();
 
-    // Check if letter belongs to targetWord and is unfulfilled
     let caughtAny = false;
     targetWord.split('').forEach((char, idx) => {
       if (char === letter && !filledStatus[idx]) {
@@ -232,7 +266,6 @@ export function renderMiniGame1(container, wordList, onComplete, onBack) {
     });
 
     if (caughtAny) {
-      // Sound pop & check if word complete!
       sound.playPop();
 
       const allFilled = filledStatus.every(status => status === true);
@@ -248,7 +281,6 @@ export function renderMiniGame1(container, wordList, onComplete, onBack) {
         }
       }
     } else {
-      // Wrong / Distractor letter caught
       sound.playWrong();
       const basket = container.querySelector('#catch-basket');
       if (basket) {
@@ -262,6 +294,7 @@ export function renderMiniGame1(container, wordList, onComplete, onBack) {
     if (animationFrameId) cancelAnimationFrame(animationFrameId);
     if (spawnTimerId) clearInterval(spawnTimerId);
     window.onkeydown = null;
+    window.onkeyup = null;
     fallingItems = [];
   }
 

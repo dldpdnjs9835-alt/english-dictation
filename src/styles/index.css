@@ -428,13 +428,13 @@ body {
 .notebook-paper {
   position: relative;
   width: 100%;
-  max-width: 520px;
-  min-height: 120px;
+  max-width: 540px;
+  min-height: 140px;
   margin: 16px auto;
   background: #fffdf5;
-  border-radius: 12px;
-  box-shadow: inset 0 0 10px rgba(0,0,0,0.06), 0 6px 20px rgba(0,0,0,0.2);
-  padding: 16px 24px;
+  border-radius: 14px;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.06), 0 6px 22px rgba(0,0,0,0.22);
+  padding: 20px 24px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -444,7 +444,7 @@ body {
 
 .notebook-lines {
   position: relative;
-  height: 72px;
+  height: 90px;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -456,34 +456,88 @@ body {
   height: 2px;
 }
 
-.notebook-line.top-red {
-  background: #f43f5e;
-}
-
-.notebook-line.mid-blue {
+/* Line 1: Top Blue */
+.notebook-line.top-blue {
   background: #3b82f6;
-  border-bottom: 1.5px dashed #93c5fd;
 }
 
-.notebook-line.bottom-red {
-  background: #f43f5e;
+/* Line 2: Mid Blue Dashed */
+.notebook-line.mid-blue-dashed {
+  background: #93c5fd;
+  border-bottom: 1.5px dashed #60a5fa;
+}
+
+/* Line 3: 2nd from bottom RED BASELINE */
+.notebook-line.baseline-red {
+  background: #ef4444;
+  height: 2.5px;
+  box-shadow: 0 0 4px rgba(239, 68, 68, 0.4);
+}
+
+/* Virtual Joystick Controller */
+.joystick-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+  position: relative;
+  user-select: none;
+}
+
+.joystick-base {
+  width: 110px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-radius: 30px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  touch-action: none;
+  cursor: grab;
+}
+
+.joystick-track-line {
+  position: absolute;
+  width: 70px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+
+.joystick-knob {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 4px 10px rgba(236, 72, 153, 0.5);
+  position: absolute;
+  transition: transform 0.05s ease-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: #fff;
 }
 
 .notebook-text-overlay {
   position: absolute;
-  top: 6px;
+  top: 0;
   left: 0;
   width: 100%;
-  height: 60px;
+  height: 60px; /* Align font baseline precisely on 3rd line (baseline-red) */
   display: flex;
   align-items: flex-end;
   font-family: 'Fredoka', 'Comic Sans MS', cursive, sans-serif;
-  font-size: 2.3rem;
+  font-size: 2.2rem;
   font-weight: 700;
   color: #1e293b;
   letter-spacing: 2px;
   line-height: 1;
-  padding-left: 8px;
+  padding-left: 10px;
   pointer-events: none;
   white-space: pre;
   overflow-x: auto;
