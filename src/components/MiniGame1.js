@@ -3,54 +3,67 @@ import confetti from 'canvas-confetti';
 
 export function renderMiniGame1(container, wordList, onComplete, onBack) {
   let currentIndex = 0;
-  let targetWordObj = wordList[currentIndex];
-  let currentTargetWord = targetWordObj.word.toUpperCase();
-  let nextLetterIndex = 0;
-  let isGameOver = false;
-
-  // Pick 5 random words for this game session
   const sessionWords = [...wordList].sort(() => 0.5 - Math.random()).slice(0, 5);
 
-  function renderGameStage() {
+  let targetWordObj = sessionWords[currentIndex];
+  let targetWord = targetWordObj.word.toUpperCase();
+  let filledStatus = []; // array of booleans indicating if slot i is filled
+  let fallingItems = []; // active falling letters
+  let basketXPercent = 50; // basket center position (0-100%)
+  let animationFrameId = null;
+  let spawnTimerId = null;
+  let isGameOver = false;
+
+  function renderStage() {
     targetWordObj = sessionWords[currentIndex];
-    currentTargetWord = targetWordObj.word.toUpperCase();
-    nextLetterIndex = 0;
+    targetWord = targetWordObj.word.toUpperCase();
+    filledStatus = Array(targetWord.length).fill(false);
+    fallingItems = [];
+    basketXPercent = 50;
 
     container.innerHTML = `
       <div class="game-container glass-card">
         <div class="game-header">
           <button id="btn-game-back" class="btn-secondary">◀ 메인으로</button>
-          <h2 style="font-size: 1.4rem; font-weight: 800; color: #ec4899;">🎈 글자 풍선 터뜨리기</h2>
+          <h2 style="font-size: 1.4rem; font-weight: 800; color: #ec4899;">🧺 알파벳 캐치 게임</h2>
           <div class="game-stats">
             <span class="stat-item" style="color: #fbbf24;">진행: ${currentIndex + 1} / 5</span>
           </div>
         </div>
 
-        <div style="text-align: center; margin: 10px 0;">
-          <div style="font-size: 1.2rem; font-weight: 700; color: var(--text-muted);">
+        <div style="text-align: center; margin: 6px 0;">
+          <div style="font-size: 1.15rem; font-weight: 700; color: var(--text-muted);">
             뜻: <span style="color: #fff;">${targetWordObj.meaning}</span> (${targetWordObj.hint})
           </div>
-          <button id="btn-re-speak" class="btn-secondary" style="margin-top: 8px; padding: 6px 16px;">
+          <button id="btn-re-speak" class="btn-secondary" style="margin-top: 6px; padding: 4px 14px; font-size: 0.85rem;">
             🔊 소리 다시 듣기
           </button>
         </div>
 
-        <!-- Word Progress Display -->
-        <div id="word-progress" class="slots-container" style="margin-bottom: 12px;">
-          ${currentTargetWord.split('').map((char, i) => `
-            <div class="slot-box" id="char-slot-${i}">?</div>
+        <!-- Word Progress Display (Slots) -->
+        <div id="word-progress" class="slots-container" style="margin: 10px 0;">
+          ${targetWord.split('').map((char, i) => `
+            <div class="slot-box" id="catch-slot-${i}">_</div>
           `).join('')}
         </div>
 
-        <!-- Floating Bubbles Arena -->
-        <div id="bubble-arena" class="bubble-arena"></div>
+        <!-- Catch Arena -->
+        <div id="catch-arena" class="catch-arena">
+          <div id="catch-basket" class="catch-basket" style="left: 50%;">🧺</div>
+        </div>
+
+        <!-- Touch / Mobile Controls -->
+        <div style="display: flex; justify-content: space-between; gap: 12px; margin-top: 10px;">
+          <button id="btn-move-left" class="btn-secondary" style="flex: 1; padding: 12px; font-size: 1.2rem;">◀ 왼쪽</button>
+          <button id="btn-move-right" class="btn-secondary" style="flex: 1; padding: 12px; font-size: 1.2rem;">오른쪽 ▶</button>
+        </div>
       </div>
     `;
 
-    // Speak initial word
     sound.speak(targetWordObj.word);
 
     container.querySelector('#btn-game-back').addEventListener('click', () => {
+      cleanUp();
       sound.playPop();
       onBack();
     });
@@ -59,107 +72,211 @@ export function renderMiniGame1(container, wordList, onComplete, onBack) {
       sound.speak(targetWordObj.word);
     });
 
-    spawnBubbles();
+    setupControls();
+    startGameLoop();
   }
 
-  function spawnBubbles() {
-    const arena = container.querySelector('#bubble-arena');
+  function setupControls() {
+    const arena = container.querySelector('#catch-arena');
+    const basket = container.querySelector('#catch-basket');
+    if (!arena || !basket) return;
+
+    // Mouse movement in arena
+    arena.addEventListener('mousemove', (e) => {
+      const rect = arena.getBoundingClientRect();
+      const relativeX = e.clientX - rect.left;
+      basketXPercent = Math.max(5, Math.min(95, (relativeX / rect.width) * 100));
+      basket.style.left = `${basketXPercent}%`;
+    });
+
+    // Touch movement in arena
+    arena.addEventListener('touchmove', (e) => {
+      if (e.touches.length > 0) {
+        const rect = arena.getBoundingClientRect();
+        const relativeX = e.touches[0].clientX - rect.left;
+        basketXPercent = Math.max(5, Math.min(95, (relativeX / rect.width) * 100));
+        basket.style.left = `${basketXPercent}%`;
+      }
+    });
+
+    // Button controls
+    const leftBtn = container.querySelector('#btn-move-left');
+    const rightBtn = container.querySelector('#btn-move-right');
+
+    if (leftBtn) {
+      leftBtn.addEventListener('click', () => {
+        basketXPercent = Math.max(8, basketXPercent - 15);
+        basket.style.left = `${basketXPercent}%`;
+      });
+    }
+    if (rightBtn) {
+      rightBtn.addEventListener('click', () => {
+        basketXPercent = Math.min(92, basketXPercent + 15);
+        basket.style.left = `${basketXPercent}%`;
+      });
+    }
+
+    // Keyboard arrow keys
+    window.onkeydown = (e) => {
+      if (e.key === 'ArrowLeft') {
+        basketXPercent = Math.max(8, basketXPercent - 10);
+        basket.style.left = `${basketXPercent}%`;
+      } else if (e.key === 'ArrowRight') {
+        basketXPercent = Math.min(92, basketXPercent + 10);
+        basket.style.left = `${basketXPercent}%`;
+      }
+    };
+  }
+
+  function spawnFallingLetter() {
+    if (isGameOver) return;
+    const arena = container.querySelector('#catch-arena');
     if (!arena) return;
-    arena.innerHTML = '';
 
-    // Letters needed + extra distractor letters
-    const wordLetters = currentTargetWord.split('');
+    // Unfilled letters of target word + distractors
+    const unfulfilledChars = targetWord.split('').filter((_, i) => !filledStatus[i]);
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const extraCount = Math.max(3, 8 - wordLetters.length);
-    const distractors = Array.from({ length: extraCount }, () => alphabet[Math.floor(Math.random() * alphabet.length)]);
-
-    const allLetters = [...wordLetters, ...distractors].sort(() => 0.5 - Math.random());
-    const total = allLetters.length;
-
-    // Grid distribution to prevent overlap (2 rows or 3 rows)
-    const cols = Math.ceil(total / 2);
     
-    allLetters.forEach((letter, i) => {
-      const bubble = document.createElement('div');
-      bubble.className = 'bubble';
-      bubble.innerText = letter;
+    let letterToSpawn = '';
+    if (Math.random() < 0.65 && unfulfilledChars.length > 0) {
+      // 65% chance to spawn needed letter
+      letterToSpawn = unfulfilledChars[Math.floor(Math.random() * unfulfilledChars.length)];
+    } else {
+      // 35% chance to spawn random distractor
+      letterToSpawn = alphabet[Math.floor(Math.random() * alphabet.length)];
+    }
 
-      // Calculate 2D position in grid with slight random offset
-      const row = Math.floor(i / cols);
-      const col = i % cols;
+    const itemEl = document.createElement('div');
+    itemEl.className = 'falling-letter';
+    itemEl.innerText = letterToSpawn;
 
-      const leftPercent = 10 + (col * (75 / cols)) + (Math.random() * 6 - 3);
-      const topPercent = (row === 0 ? 15 : 55) + (Math.random() * 12 - 6);
+    const leftPercent = 8 + Math.random() * 84;
+    itemEl.style.left = `${leftPercent}%`;
+    itemEl.style.top = `-60px`;
 
-      const animDuration = 2.5 + Math.random() * 1.5;
-      const animDelay = Math.random() * 1.5;
+    // Click handler on letter as alternate catch method
+    itemEl.addEventListener('click', () => {
+      handleCatchLetter(letterToSpawn, itemEl);
+    });
 
-      bubble.style.left = `${Math.max(5, Math.min(85, leftPercent))}%`;
-      bubble.style.top = `${Math.max(10, Math.min(75, topPercent))}%`;
-      bubble.style.animationDuration = `${animDuration}s`;
-      bubble.style.animationDelay = `${animDelay}s`;
+    arena.appendChild(itemEl);
 
-      bubble.addEventListener('click', () => handleBubbleClick(bubble, letter));
-      arena.appendChild(bubble);
+    fallingItems.push({
+      el: itemEl,
+      letter: letterToSpawn,
+      xPercent: leftPercent,
+      yPos: -60,
+      speed: 1.8 + Math.random() * 1.4
     });
   }
 
-  function handleBubbleClick(bubbleEl, letter) {
-    if (isGameOver) return;
-    const requiredLetter = currentTargetWord[nextLetterIndex];
+  function startGameLoop() {
+    cleanUp();
 
-    if (letter === requiredLetter) {
-      // Correct!
-      sound.playPop();
-      
-      // Update slot UI
-      const slotEl = container.querySelector(`#char-slot-${nextLetterIndex}`);
-      if (slotEl) {
-        slotEl.innerText = letter;
-        slotEl.classList.add('filled');
+    spawnTimerId = setInterval(spawnFallingLetter, 1100);
+
+    function updatePhysics() {
+      if (isGameOver) return;
+      const arena = container.querySelector('#catch-arena');
+      const basket = container.querySelector('#catch-basket');
+      if (!arena) return;
+
+      const arenaHeight = arena.clientHeight || 380;
+      const basketY = arenaHeight - 60; // collision zone Y
+
+      for (let i = fallingItems.length - 1; i >= 0; i--) {
+        const item = fallingItems[i];
+        item.yPos += item.speed;
+        item.el.style.top = `${item.yPos}px`;
+
+        // Check Collision with Basket at bottom
+        if (item.yPos >= basketY && item.yPos <= basketY + 35) {
+          const dist = Math.abs(item.xPercent - basketXPercent);
+          if (dist < 14) {
+            // Collision caught!
+            handleCatchLetter(item.letter, item.el);
+            fallingItems.splice(i, 1);
+            continue;
+          }
+        }
+
+        // Out of bottom bounds -> remove
+        if (item.yPos > arenaHeight + 60) {
+          item.el.remove();
+          fallingItems.splice(i, 1);
+        }
       }
 
-      // Pop animation & remove bubble
-      bubbleEl.style.transform = 'scale(1.5)';
-      bubbleEl.style.opacity = '0';
-      setTimeout(() => bubbleEl.remove(), 150);
+      animationFrameId = requestAnimationFrame(updatePhysics);
+    }
 
-      nextLetterIndex++;
+    animationFrameId = requestAnimationFrame(updatePhysics);
+  }
 
-      // Check if word completed
-      if (nextLetterIndex >= currentTargetWord.length) {
+  function handleCatchLetter(letter, itemEl) {
+    itemEl.remove();
+
+    // Check if letter belongs to targetWord and is unfulfilled
+    let caughtAny = false;
+    targetWord.split('').forEach((char, idx) => {
+      if (char === letter && !filledStatus[idx]) {
+        filledStatus[idx] = true;
+        caughtAny = true;
+
+        const slotEl = container.querySelector(`#catch-slot-${idx}`);
+        if (slotEl) {
+          slotEl.innerText = letter;
+          slotEl.classList.add('filled');
+        }
+      }
+    });
+
+    if (caughtAny) {
+      // Sound pop & check if word complete!
+      sound.playPop();
+
+      const allFilled = filledStatus.every(status => status === true);
+      if (allFilled) {
         sound.playCorrect();
+        cleanUp();
+
         currentIndex++;
         if (currentIndex < 5) {
-          setTimeout(() => renderGameStage(), 800);
+          setTimeout(renderStage, 800);
         } else {
           finishGame();
         }
       }
     } else {
-      // Wrong bubble
+      // Wrong / Distractor letter caught
       sound.playWrong();
-      bubbleEl.style.animation = 'none';
-      bubbleEl.offsetHeight; // trigger reflow
-      bubbleEl.style.border = '3px solid #ef4444';
-      setTimeout(() => {
-        bubbleEl.style.border = 'none';
-        bubbleEl.style.animation = 'floatBob 3s infinite ease-in-out alternate';
-      }, 500);
+      const basket = container.querySelector('#catch-basket');
+      if (basket) {
+        basket.classList.add('basket-shake');
+        setTimeout(() => basket.classList.remove('basket-shake'), 300);
+      }
     }
+  }
+
+  function cleanUp() {
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    if (spawnTimerId) clearInterval(spawnTimerId);
+    window.onkeydown = null;
+    fallingItems = [];
   }
 
   function finishGame() {
     isGameOver = true;
+    cleanUp();
     sound.playTicketReward();
     confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
 
     container.innerHTML = `
       <div class="game-container glass-card" style="text-align: center; justify-content: center; align-items: center;">
-        <span style="font-size: 4rem;">🎉</span>
-        <h2 style="font-size: 2rem; font-weight: 900; margin-top: 10px;">풍선 터뜨리기 성공!</h2>
+        <span style="font-size: 4rem;">🧺</span>
+        <h2 style="font-size: 2rem; font-weight: 900; margin-top: 10px;">알파벳 캐치 성공!</h2>
         <p style="font-size: 1.2rem; color: var(--text-muted); margin-bottom: 20px;">
-          모든 단어를 완벽하게 완성했습니다!
+          신나게 알파벳을 받아 목표 단어를 완벽하게 완성했습니다!
         </p>
         <div class="ticket-badge" style="font-size: 1.5rem; padding: 12px 28px; margin-bottom: 24px;">
           🎟️ 티켓 +1장 획득!
@@ -176,5 +293,5 @@ export function renderMiniGame1(container, wordList, onComplete, onBack) {
     });
   }
 
-  renderGameStage();
+  renderStage();
 }

@@ -7,21 +7,25 @@ export function renderMiniGame3(container, wordList, onComplete, onBack) {
   
   let targetObj = sessionWords[currentIndex];
   let targetWord = targetObj.word.toUpperCase();
-  let userLetters = [];
+  let blankIndices = []; // indices that are blanks (_)
+  let userBlanks = []; // user entered values for the blanks
   let isGameOver = false;
 
   function renderStage() {
     targetObj = sessionWords[currentIndex];
     targetWord = targetObj.word.toUpperCase();
-    userLetters = [];
+    userBlanks = [];
 
-    // Create mask (blanks for slots)
-    // 50% of letters masked or at least 2 blanks
+    // Pick 1 or 2 random blank indices (vowels/consonants)
+    const blankCount = targetWord.length <= 4 ? 1 : 2;
+    const allIndices = Array.from({ length: targetWord.length }, (_, i) => i).sort(() => 0.5 - Math.random());
+    blankIndices = allIndices.slice(0, blankCount).sort((a, b) => a - b);
+
     container.innerHTML = `
       <div class="game-container glass-card">
         <div class="game-header">
           <button id="btn-game-back" class="btn-secondary">◀ 메인으로</button>
-          <h2 style="font-size: 1.4rem; font-weight: 800; color: #10b981;">🎧 소리듣고 알파벳 맞추기</h2>
+          <h2 style="font-size: 1.4rem; font-weight: 800; color: #10b981;">🎧 소리듣고 빈칸 채우기</h2>
           <div class="game-stats">
             <span class="stat-item" style="color: #fbbf24;">진행: ${currentIndex + 1} / 5</span>
           </div>
@@ -35,18 +39,23 @@ export function renderMiniGame3(container, wordList, onComplete, onBack) {
             뜻 힌트: <span style="color: #fff;">${targetObj.meaning}</span>
           </div>
 
-          <!-- Target Slot Display -->
+          <!-- Target Slot Display (Pre-filled except 1-2 blanks) -->
           <div id="slots-area" class="slots-container">
-            ${targetWord.split('').map((_, i) => `
-              <div class="slot-box" id="quiz-slot-${i}">_</div>
-            `).join('')}
+            ${targetWord.split('').map((char, i) => {
+              const isBlank = blankIndices.includes(i);
+              return `
+                <div class="slot-box ${isBlank ? '' : 'filled'}" id="quiz-slot-${i}" style="${isBlank ? 'border: 2px dashed #fbbf24;' : ''}">
+                  ${isBlank ? '_' : char}
+                </div>
+              `;
+            }).join('')}
           </div>
 
           <!-- Keypad pills -->
           <div class="keypad-grid" id="keypad"></div>
 
           <div style="display: flex; gap: 12px; margin-top: 10px;">
-            <button id="btn-clear" class="btn-secondary" style="padding: 8px 20px;">지우기 ⌫</button>
+            <button id="btn-clear" class="btn-secondary" style="padding: 8px 20px;">빈칸 지우기 ⌫</button>
           </div>
         </div>
       </div>
@@ -66,7 +75,7 @@ export function renderMiniGame3(container, wordList, onComplete, onBack) {
 
     container.querySelector('#btn-clear').addEventListener('click', () => {
       sound.playPop();
-      userLetters = [];
+      userBlanks = [];
       updateSlots();
     });
 
@@ -77,12 +86,12 @@ export function renderMiniGame3(container, wordList, onComplete, onBack) {
     const keypadContainer = container.querySelector('#keypad');
     if (!keypadContainer) return;
 
-    // Word letters + random shuffled letters
+    // Correct blank letters + random distractor letters
+    const correctBlankLetters = blankIndices.map(i => targetWord[i]);
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const wordLetters = targetWord.split('');
     const extraLetters = Array.from({ length: 4 }, () => alphabet[Math.floor(Math.random() * alphabet.length)]);
 
-    const allKeys = [...wordLetters, ...extraLetters].sort(() => 0.5 - Math.random());
+    const allKeys = [...correctBlankLetters, ...extraLetters].sort(() => 0.5 - Math.random());
 
     keypadContainer.innerHTML = allKeys.map(key => `
       <button class="key-pill" data-key="${key}">${key}</button>
@@ -98,24 +107,24 @@ export function renderMiniGame3(container, wordList, onComplete, onBack) {
 
   function handleKeyPress(key) {
     if (isGameOver) return;
-    if (userLetters.length < targetWord.length) {
+    if (userBlanks.length < blankIndices.length) {
       sound.playPop();
-      userLetters.push(key);
+      userBlanks.push(key);
       updateSlots();
 
-      // Check if full
-      if (userLetters.length === targetWord.length) {
+      // Check if all blanks filled
+      if (userBlanks.length === blankIndices.length) {
         checkAnswer();
       }
     }
   }
 
   function updateSlots() {
-    targetWord.split('').forEach((_, i) => {
-      const slotEl = container.querySelector(`#quiz-slot-${i}`);
+    blankIndices.forEach((blankIdx, i) => {
+      const slotEl = container.querySelector(`#quiz-slot-${blankIdx}`);
       if (slotEl) {
-        if (i < userLetters.length) {
-          slotEl.innerText = userLetters[i];
+        if (i < userBlanks.length) {
+          slotEl.innerText = userBlanks[i];
           slotEl.classList.add('filled');
         } else {
           slotEl.innerText = '_';
@@ -126,8 +135,13 @@ export function renderMiniGame3(container, wordList, onComplete, onBack) {
   }
 
   function checkAnswer() {
-    const userInput = userLetters.join('');
-    if (userInput === targetWord) {
+    // Construct full word with userBlanks
+    let constructed = targetWord.split('');
+    blankIndices.forEach((blankIdx, i) => {
+      constructed[blankIdx] = userBlanks[i];
+    });
+
+    if (constructed.join('') === targetWord) {
       // Correct!
       sound.playCorrect();
       currentIndex++;
@@ -143,7 +157,7 @@ export function renderMiniGame3(container, wordList, onComplete, onBack) {
       const slots = container.querySelectorAll('.slot-box');
       slots.forEach(s => s.style.border = '2px solid #ef4444');
       setTimeout(() => {
-        userLetters = [];
+        userBlanks = [];
         updateSlots();
       }, 700);
     }

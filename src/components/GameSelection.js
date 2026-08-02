@@ -11,10 +11,10 @@ export function renderGameSelection(container, user, onSelectGame) {
     <div class="game-grid">
       <!-- Game 1 -->
       <div class="game-card glass-card" id="btn-game1" style="--card-accent: #ec4899; --card-glow: rgba(236, 72, 153, 0.4);">
-        <div class="game-icon-box">🎈</div>
+        <div class="game-icon-box">🧺</div>
         <div class="reward-pill">보상: 티켓 🎟️ +1</div>
-        <h3 class="game-title">글자 풍선 터뜨리기</h3>
-        <p class="game-desc">화면에 떠오르는 알파벳 풍선을 철자 순서대로 터뜨려 단어를 완성해봐!</p>
+        <h3 class="game-title">알파벳 캐치 게임</h3>
+        <p class="game-desc">하늘에서 떨어지는 알파벳 중 내 단어에 포함된 철자를 순서 상관없이 바구니로 쏙쏙 받아보세요!</p>
         <button class="btn-primary" style="background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);">게임 시작</button>
       </div>
 
@@ -31,8 +31,8 @@ export function renderGameSelection(container, user, onSelectGame) {
       <div class="game-card glass-card" id="btn-game3" style="--card-accent: #10b981; --card-glow: rgba(16, 185, 129, 0.4);">
         <div class="game-icon-box">🎧</div>
         <div class="reward-pill">보상: 티켓 🎟️ +1</div>
-        <h3 class="game-title">소리듣고 알파벳 맞추기</h3>
-        <p class="game-desc">선생님의 발음을 귀로 쫑긋 듣고, 빠진 알파벳을 완성해보세요!</p>
+        <h3 class="game-title">소리듣고 빈칸 채우기</h3>
+        <p class="game-desc">선생님 발음을 듣고 단어 속 쏙 빠진 1~2개 핵심 빈칸 알파벳만 스피드하게 맞춰보세요!</p>
         <button class="btn-primary" style="background: linear-gradient(135deg, #10b981 0%, #f59e0b 100%);">게임 시작</button>
       </div>
 
