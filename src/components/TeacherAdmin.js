@@ -4,7 +4,7 @@ import { GRADES, UNITS, getUnitContent, saveCustomTeacherUnit, resetCustomTeache
 export function renderTeacherAdmin(container, onBack) {
   let selectedGrade = 'grade5';
   let selectedUnit = 1;
-  let isPinVerified = localStorage.getItem('kids_teacher_verified') === 'true';
+  let isPinVerified = false; // Always require PIN verification every time teacher page is opened!
 
   const getTeacherPin = () => localStorage.getItem('kids_teacher_pin') || '1234';
 
@@ -37,15 +37,13 @@ export function renderTeacherAdmin(container, onBack) {
   }
 
   function renderPinScreen() {
-    const activePin = getTeacherPin();
-
     container.innerHTML = `
       <div class="game-container glass-card" style="max-width: 480px; margin: 40px auto; text-align: center; padding: 32px;">
         <span style="font-size: 3.5rem;">👩‍🏫</span>
         <h2 style="font-size: 1.8rem; font-weight: 900; margin: 12px 0; color: #a855f7;">선생님 전용 비밀번호 입력</h2>
         <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 24px;">
           단어 등록 및 시험 문제를 수정하려면 선생님 PIN 번호를 입력하세요.<br>
-          <span style="color: #fbbf24; font-weight: 700;">(기본 비밀번호: 1234)</span>
+          <span style="color: #fbbf24; font-weight: 700;">(초기 비밀번호: 1234)</span>
         </p>
         
         <input type="password" id="teacher-pin-input" class="dictation-input" placeholder="PIN 번호 입력..." maxlength="8" style="text-align: center; font-size: 1.5rem; letter-spacing: 6px; margin-bottom: 16px;" />
@@ -68,7 +66,6 @@ export function renderTeacherAdmin(container, onBack) {
     const checkPin = () => {
       if (pinInput.value.trim() === getTeacherPin()) {
         sound.playCorrect();
-        localStorage.setItem('kids_teacher_verified', 'true');
         isPinVerified = true;
         renderAdminDashboard();
       } else {
